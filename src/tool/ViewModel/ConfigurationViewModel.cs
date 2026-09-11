@@ -422,32 +422,6 @@ namespace BBSFW.ViewModel
 			}
 		}
 
-		public uint PasKeepCurrentPercent
-		{
-			get { return _config.PasKeepCurrentPercent; }
-			set
-			{
-				if (_config.PasKeepCurrentPercent != value)
-				{
-					_config.PasKeepCurrentPercent = value;
-					OnPropertyChanged(nameof(PasKeepCurrentPercent));
-				}
-			}
-		}
-
-		public uint PasKeepCurrentCadenceRpm
-		{
-			get { return _config.PasKeepCurrentCadenceRpm; }
-			set
-			{
-				if (_config.PasKeepCurrentCadenceRpm != value)
-				{
-					_config.PasKeepCurrentCadenceRpm = value;
-					OnPropertyChanged(nameof(PasKeepCurrentCadenceRpm));
-				}
-			}
-		}
-
 		public float WheelSizeInch
 		{
 			get { return _config.WheelSizeInch; }

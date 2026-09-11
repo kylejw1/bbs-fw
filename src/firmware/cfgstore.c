@@ -176,8 +176,6 @@ static void load_default_config()
 
 	g_config.pas_start_delay_pulses = 5;
 	g_config.pas_stop_delay_x100s = 20;
-	g_config.pas_keep_current_percent = 60;
-	g_config.pas_keep_current_cadence_rpm = 40;
 
 	g_config.throttle_start_voltage_mv_u16l = (uint8_t)1000;
 	g_config.throttle_start_voltage_mv_u16h = (uint8_t)(1000 >> 8);
@@ -201,16 +199,19 @@ static void load_default_config()
 	for (uint8_t i = 0; i < 9; ++i)
 	{
 		g_config.assist_levels[0][i+1].flags = ASSIST_FLAG_PAS | ASSIST_FLAG_THROTTLE;
-		g_config.assist_levels[0][i+1].max_cadence_percent = 100;
 		g_config.assist_levels[0][i+1].max_speed_percent = 100;
 		g_config.assist_levels[0][i+1].max_throttle_current_percent = 100;
+		g_config.assist_levels[0][i+1].taper_start_cadence_rpm = 40;
+		g_config.assist_levels[0][i+1].taper_end_cadence_rpm = 100;
 
 #if HAS_TORQUE_SENSOR
 		g_config.assist_levels[0][i+1].flags |= ASSIST_FLAG_PAS_TORQUE;
-		g_config.assist_levels[0][i+1].target_current_percent = 100;
+		g_config.assist_levels[0][i+1].max_current_percent = 100;
+		g_config.assist_levels[0][i+1].min_current_percent = 60;
 		g_config.assist_levels[0][i+1].torque_amplification_factor_x10 = default_torque_factors[i];
 #else
-		g_config.assist_levels[0][i+1].target_current_percent = default_current_limits[i];
+		g_config.assist_levels[0][i+1].max_current_percent = default_current_limits[i];
+		g_config.assist_levels[0][i+1].min_current_percent = (uint8_t)((uint16_t)default_current_limits[i] * 60 / 100);
 		g_config.assist_levels[0][i+1].torque_amplification_factor_x10 = 0;
 #endif	
 	}

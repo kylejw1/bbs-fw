@@ -242,15 +242,54 @@ namespace BBSFW.ViewModel
 			}
 		}
 
-		public uint MaxCadencePercent
+		public uint MinCurrentPercent
 		{
-			get { return _level.MaxCadencePercent; }
+			get { return _level.MinCurrentPercent; }
 			set
 			{
-				if (_level.MaxCadencePercent != value)
+				if (_level.MinCurrentPercent != value)
 				{
-					_level.MaxCadencePercent = value;
-					OnPropertyChanged(nameof(MaxCadencePercent));
+					_level.MinCurrentPercent = value;
+					OnPropertyChanged(nameof(MinCurrentPercent));
+				}
+			}
+		}
+
+		public uint TaperStartCadenceRpm
+		{
+			get { return _level.TaperStartCadenceRpm; }
+			set
+			{
+				if (_level.TaperStartCadenceRpm != value)
+				{
+					_level.TaperStartCadenceRpm = value;
+					OnPropertyChanged(nameof(TaperStartCadenceRpm));
+				}
+			}
+		}
+
+		public uint TaperEndCadenceRpm
+		{
+			get { return _level.TaperEndCadenceRpm; }
+			set
+			{
+				if (_level.TaperEndCadenceRpm != value)
+				{
+					_level.TaperEndCadenceRpm = value;
+					OnPropertyChanged(nameof(TaperEndCadenceRpm));
+				}
+			}
+		}
+
+		public bool IsDisplayTargetCurrentEnabled
+		{
+			get { return _level.Type.HasFlag(Configuration.AssistFlagsType.DisplayTargetCurrent); }
+			set
+			{
+				if (value != IsDisplayTargetCurrentEnabled)
+				{
+					_level.Type = ApplyDisplayTargetCurrentFlag(value, _level.Type);
+					OnPropertyChanged(nameof(IsDisplayTargetCurrentEnabled));
 				}
 			}
 		}
@@ -391,6 +430,21 @@ namespace BBSFW.ViewModel
 			}
 
 			return result;
+		}
+
+		private static Configuration.AssistFlagsType ApplyDisplayTargetCurrentFlag(bool enabled, Configuration.AssistFlagsType flags)
+		{
+			byte f = (byte)flags;
+			if (enabled)
+			{
+				f |= (byte)Configuration.AssistFlagsType.DisplayTargetCurrent;
+			}
+			else
+			{
+				f &= (byte)~(Configuration.AssistFlagsType.DisplayTargetCurrent);
+			}
+
+			return (Configuration.AssistFlagsType)f;
 		}
 
 	}
