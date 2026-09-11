@@ -20,6 +20,7 @@
 #define ASSIST_FLAG_PAS_TORQUE			0x10	// pas mode using torque sensor reading
 #define ASSIST_FLAG_OVERRIDE_CADENCE	0x20	// pas option where max cadence is set to 100% when throttle overrides pas
 #define ASSIST_FLAG_OVERRIDE_SPEED		0x40	// pas option where max speed is set to 100% when throttle overrides pas
+#define ASSIST_FLAG_DISPLAY_TARGET_CURRENT 0x80	// pas option to display target current instead of speed
 
 #define ASSIST_MODE_SELECT_OFF			0x00
 #define ASSIST_MODE_SELECT_STANDARD		0x01
@@ -54,16 +55,18 @@
 #define LIGHTS_MODE_ALWAYS_ON			2
 #define LIGHTS_MODE_BRAKE_LIGHT			3
 
-#define CONFIG_VERSION					5
+#define CONFIG_VERSION					6
 #define PSTATE_VERSION					1
 
 
 typedef struct
 {
 	uint8_t flags;
-	uint8_t target_current_percent;
+	uint8_t max_current_percent;
+	uint8_t min_current_percent;
+	uint8_t taper_start_cadence_rpm;
+	uint8_t taper_end_cadence_rpm;
 	uint8_t max_throttle_current_percent;
-	uint8_t max_cadence_percent;
 	uint8_t max_speed_percent;
 
 	// 10 => 1.0: 100w human power gives and additional 100w motor power
@@ -101,8 +104,6 @@ typedef struct
 	// pas options
 	uint8_t pas_start_delay_pulses;
 	uint8_t pas_stop_delay_x100s;
-	uint8_t pas_keep_current_percent;
-	uint8_t pas_keep_current_cadence_rpm;
 
 	// throttle options
 	uint8_t throttle_start_voltage_mv_u16l;

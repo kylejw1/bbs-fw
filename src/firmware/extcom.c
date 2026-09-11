@@ -28,7 +28,7 @@
 #define DISCARD		-1
 
 
-#define BUFFER_SIZE			192
+#define BUFFER_SIZE			250
 #define DISCARD_TIMEOUT_MS	50
 
 #define REQUEST_TYPE_READ						0x01
@@ -625,6 +625,19 @@ static int16_t process_bafang_display_read_speed()
 		}
 
 		// T_kph -> rpm
+		speed = (uint16_t)(25000.f / (3 * 3.14159f * 1.27f * EXPAND_U16(g_config.wheel_size_inch_x10_u16h, g_config.wheel_size_inch_x10_u16l)) * data);
+	}
+	else if (app_get_assist_level_flags() & ASSIST_FLAG_DISPLAY_TARGET_CURRENT)
+	{
+		uint16_t data = motor_get_target_current();
+
+		if (g_config.use_freedom_units)
+		{
+			// Compensate for kph -> mph conversion display will do.
+			data = (data * 161) / 100;
+		}
+
+		// T_kph -> rpm (converts target current percent to display speed equivalent)
 		speed = (uint16_t)(25000.f / (3 * 3.14159f * 1.27f * EXPAND_U16(g_config.wheel_size_inch_x10_u16h, g_config.wheel_size_inch_x10_u16l)) * data);
 	}
 	else

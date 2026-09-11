@@ -65,6 +65,7 @@ void app_set_operation_mode(uint8_t mode);
 void app_set_wheel_max_speed_rpm(uint16_t value);
 
 uint8_t app_get_assist_level();
+uint8_t app_get_assist_level_flags();
 uint8_t app_get_lights();
 uint8_t app_get_status_code();
 uint8_t app_get_temperature();

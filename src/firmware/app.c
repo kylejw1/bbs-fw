@@ -30,9 +30,8 @@ typedef struct
 	int32_t max_wheel_speed_rpm_x10;
 
 	// pas
-	uint8_t keep_current_target_percent;
-	uint16_t keep_current_ramp_start_rpm_x10;
-	uint16_t keep_current_ramp_end_rpm_x10;
+	uint16_t taper_start_rpm_x10;
+	uint16_t taper_end_rpm_x10;
 
 } assist_level_data_t;
 
@@ -128,7 +127,7 @@ void app_init()
 void app_process()
 {
 	uint8_t target_current = 0;
-	uint8_t target_cadence = assist_level_data.level.max_cadence_percent;
+	uint8_t target_cadence = 100;
 	uint8_t throttle_percent = throttle_map_response(throttle_read());
 
 	bool pas_engaged = false;
@@ -141,6 +140,7 @@ void app_process()
 	else if (assist_level == ASSIST_PUSH && g_config.use_push_walk)
 	{
 		target_current = 10;
+		target_cadence = 15;
 	}
 	else
 	{
@@ -285,6 +285,11 @@ uint8_t app_get_assist_level()
 	return assist_level;
 }
 
+uint8_t app_get_assist_level_flags()
+{
+	return assist_level_data.level.flags;
+}
+
 uint8_t app_get_lights()
 {
 	return lights_state;
@@ -377,7 +382,7 @@ void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent)
 		{
 			if (assist_level_data.level.flags & ASSIST_FLAG_PAS_VARIABLE)
 			{
-				uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.target_current_percent);
+				uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.max_current_percent);
 				if (current > *target_current)
 				{
 					*target_current = current;
@@ -385,26 +390,37 @@ void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent)
 			}
 			else
 			{
-				if (assist_level_data.level.target_current_percent > *target_current)
+				if (assist_level_data.level.max_current_percent > *target_current)
 				{
-					*target_current = assist_level_data.level.target_current_percent;
+					*target_current = assist_level_data.level.max_current_percent;
 				}
 
-				// apply "keep current" ramp
-				if (g_config.pas_keep_current_percent < 100)
-				{
-					if (*target_current > assist_level_data.keep_current_target_percent &&
-						pas_get_cadence_rpm_x10() > assist_level_data.keep_current_ramp_start_rpm_x10)
-					{
-						uint32_t cadence = MIN(pas_get_cadence_rpm_x10(), assist_level_data.keep_current_ramp_end_rpm_x10);
+				// Per-PAS-level cadence current tapering
+				uint16_t cadence_rpm_x10 = pas_get_cadence_rpm_x10();
+				uint8_t max_curr = assist_level_data.level.max_current_percent;
+				uint8_t min_curr = assist_level_data.level.min_current_percent;
 
-						// ramp down current towards keep_current_target_percent with rpm above keep_current_ramp_start_rpm_x10
-						*target_current = MAP32(
-							cadence,	// in
-							assist_level_data.keep_current_ramp_start_rpm_x10,		// in_min
-							assist_level_data.keep_current_ramp_end_rpm_x10,		// in_max
-							*target_current,										// out_min
-							assist_level_data.keep_current_target_percent);			// out_max
+				if (assist_level_data.taper_end_rpm_x10 > assist_level_data.taper_start_rpm_x10)
+				{
+					if (cadence_rpm_x10 >= assist_level_data.taper_end_rpm_x10)
+					{
+						*target_current = min_curr;
+					}
+					else if (cadence_rpm_x10 > assist_level_data.taper_start_rpm_x10)
+					{
+						*target_current = (uint8_t)MAP32(
+							cadence_rpm_x10,
+							assist_level_data.taper_start_rpm_x10,
+							assist_level_data.taper_end_rpm_x10,
+							max_curr,
+							min_curr);
+					}
+				}
+				else
+				{
+					if (cadence_rpm_x10 >= assist_level_data.taper_end_rpm_x10)
+					{
+						*target_current = min_curr;
 					}
 				}
 			}
@@ -450,9 +466,9 @@ void apply_pas_torque(uint8_t* target_current)
 				tmp_percent = 1;
 			}
 			// limit to maximum assist current for set level
-			else if (tmp_percent > assist_level_data.level.target_current_percent)
+			else if (tmp_percent > assist_level_data.level.max_current_percent)
 			{
-				tmp_percent = assist_level_data.level.target_current_percent;
+				tmp_percent = assist_level_data.level.max_current_percent;
 			}
 
 			if (tmp_percent > *target_current)
@@ -510,9 +526,9 @@ void apply_cruise(uint8_t* target_current, uint8_t throttle_percent)
 		}
 		else
 		{
-			if (assist_level_data.level.target_current_percent > *target_current)
+			if (assist_level_data.level.max_current_percent > *target_current)
 			{
-				*target_current = assist_level_data.level.target_current_percent;
+				*target_current = assist_level_data.level.max_current_percent;
 			}
 		}
 	}
@@ -945,9 +961,8 @@ void reload_assist_params()
 
 		if (assist_level_data.level.flags & ASSIST_FLAG_PAS)
 		{
-			assist_level_data.keep_current_target_percent = (uint8_t)((uint16_t)g_config.pas_keep_current_percent * assist_level_data.level.target_current_percent / 100);
-			assist_level_data.keep_current_ramp_start_rpm_x10 = g_config.pas_keep_current_cadence_rpm * 10;
-			assist_level_data.keep_current_ramp_end_rpm_x10 = (uint16_t)(((uint32_t)assist_level_data.level.max_cadence_percent * MAX_CADENCE_RPM_X10) / 100);
+			assist_level_data.taper_start_rpm_x10 = (uint16_t)assist_level_data.level.taper_start_cadence_rpm * 10;
+			assist_level_data.taper_end_rpm_x10 = (uint16_t)assist_level_data.level.taper_end_cadence_rpm * 10;
 		}
 
 		// pause cruise if swiching level
@@ -958,9 +973,11 @@ void reload_assist_params()
 	else if (assist_level == ASSIST_PUSH && g_config.use_push_walk)
 	{
 		assist_level_data.level.flags = 0;
-		assist_level_data.level.target_current_percent = 0;
+		assist_level_data.level.max_current_percent = 0;
+		assist_level_data.level.min_current_percent = 0;
+		assist_level_data.level.taper_start_cadence_rpm = 0;
+		assist_level_data.level.taper_end_cadence_rpm = 0;
 		assist_level_data.level.max_speed_percent = 0;
-		assist_level_data.level.max_cadence_percent = 15;
 		assist_level_data.level.max_throttle_current_percent = 0;
 
 		assist_level_data.max_wheel_speed_rpm_x10 = convert_wheel_speed_kph_to_rpm(WALK_MODE_SPEED_KPH) * 10;
