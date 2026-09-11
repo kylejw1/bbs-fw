@@ -37,6 +37,8 @@
 #if defined(BBS02)
 	#define MAX_CADENCE_RPM_X10					1500
 #elif defined(BBSHD)
+	// KW: I think I should drop this to be my actual physical max?  It sucks to hard code it though.
+	// KW: Need to figure out if my cadence is accurate first  
 	// Measured on BBSHD at 48V
 	#define MAX_CADENCE_RPM_X10					1680
 #else
@@ -44,7 +46,7 @@
 #endif
 
 #if defined(BBS02) || defined(BBSHD)
-	#define PAS_PULSES_REVOLUTION				32
+	#define PAS_PULSES_REVOLUTION				24
 #elif defined(TSDZ2)
 	#define PAS_PULSES_REVOLUTION				20
 #endif
@@ -109,8 +111,8 @@
 // Custom throttle map
 // y = pow(x / 100.0, 1.5) * 100.0
 #define THROTTLE_CUSTOM_MAP						\
-	0,  1,  1,  1,  2,  2,  2,  3,  3,  3,		\
-	4,  4,  4,  5,  5,  6,  6,  7,  8,  8,		\
+	0,  0,  0,  1,  1,  1,  1,  2,  2,  3,		\
+	3,  4,  4,  5,  5,  6,  6,  7,  8,  8,		\
 	9,  10, 10, 11, 12, 12, 13, 14, 15, 16,		\
 	16, 17, 18, 19, 20, 21, 22, 23, 23, 24,		\
 	25, 26, 27, 28, 29, 30, 31, 32, 33, 34,		\
