@@ -44,7 +44,7 @@
 #endif
 
 #if defined(BBS02) || defined(BBSHD)
-	#define PAS_PULSES_REVOLUTION				24
+	#define PAS_PULSES_REVOLUTION				32
 #elif defined(TSDZ2)
 	#define PAS_PULSES_REVOLUTION				20
 #endif
