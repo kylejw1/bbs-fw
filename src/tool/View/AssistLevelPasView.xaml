@@ -207,14 +207,14 @@
 			</TextBox.Style>
 		</TextBox>
 
-		<TextBlock Grid.Column="0" Grid.Row="10" Text="Display Target Current:" VerticalAlignment="Center" Margin="0 8 0 0">
+		<TextBlock Grid.Column="0" Grid.Row="10" Text="Display Cadence:" VerticalAlignment="Center" Margin="0 8 0 0">
 			<TextBlock.ToolTip>
 				<TextBlock Width="300" TextWrapping="Wrap">
-				Show the target motor current on the display instead of the road speed while this assist level is active.
+				Show the pedal cadence (rpm) on the display instead of the road speed while this assist level is active.
 				</TextBlock>
 			</TextBlock.ToolTip>
 		</TextBlock>
-		<CheckBox Grid.Column="1" Grid.Row="10" IsChecked="{Binding IsDisplayTargetCurrentEnabled}" Margin="9 8 0 0" />
+		<CheckBox Grid.Column="1" Grid.Row="10" IsChecked="{Binding IsDisplayCadenceEnabled}" Margin="9 8 0 0" />
 
 	</Grid>
 </UserControl>

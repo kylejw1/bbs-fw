@@ -627,9 +627,11 @@ static int16_t process_bafang_display_read_speed()
 		// T_kph -> rpm
 		speed = (uint16_t)(25000.f / (3 * 3.14159f * 1.27f * EXPAND_U16(g_config.wheel_size_inch_x10_u16h, g_config.wheel_size_inch_x10_u16l)) * data);
 	}
-	else if (app_get_assist_level_flags() & ASSIST_FLAG_DISPLAY_TARGET_CURRENT)
+	else if (app_get_assist_level_flags() & ASSIST_FLAG_DISPLAY_CADENCE)
 	{
-		uint16_t data = motor_get_target_current();
+		// Cadence is shown in the display speed field, so convert it to the
+		// wheel rpm which would make the display show that number as speed.
+		uint16_t data = pas_get_cadence_rpm_x10() / 10;
 
 		if (g_config.use_freedom_units)
 		{
@@ -637,7 +639,7 @@ static int16_t process_bafang_display_read_speed()
 			data = (data * 161) / 100;
 		}
 
-		// T_kph -> rpm (converts target current percent to display speed equivalent)
+		// T_kph -> rpm (converts cadence rpm to display speed equivalent)
 		speed = (uint16_t)(25000.f / (3 * 3.14159f * 1.27f * EXPAND_U16(g_config.wheel_size_inch_x10_u16h, g_config.wheel_size_inch_x10_u16l)) * data);
 	}
 	else

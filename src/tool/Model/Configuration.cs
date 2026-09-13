@@ -81,7 +81,10 @@ namespace BBSFW.Model
 			PasTorque = 0x10,
 			CadenceOverride = 0x20,
 			SpeedOverride = 0x40,
-			DisplayTargetCurrent = 0x80
+
+			// Name kept in xml presets for backwards compatibility.
+			[XmlEnum("DisplayTargetCurrent")]
+			DisplayCadence = 0x80
 		};
 
 		public enum ThrottleGlobalSpeedLimitOptions

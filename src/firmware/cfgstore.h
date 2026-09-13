@@ -20,7 +20,7 @@
 #define ASSIST_FLAG_PAS_TORQUE			0x10	// pas mode using torque sensor reading
 #define ASSIST_FLAG_OVERRIDE_CADENCE	0x20	// pas option where max cadence is set to 100% when throttle overrides pas
 #define ASSIST_FLAG_OVERRIDE_SPEED		0x40	// pas option where max speed is set to 100% when throttle overrides pas
-#define ASSIST_FLAG_DISPLAY_TARGET_CURRENT 0x80	// pas option to display target current instead of speed
+#define ASSIST_FLAG_DISPLAY_CADENCE		0x80	// pas option to display pedal cadence instead of speed
 
 #define ASSIST_MODE_SELECT_OFF			0x00
 #define ASSIST_MODE_SELECT_STANDARD		0x01

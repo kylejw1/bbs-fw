@@ -58,6 +58,11 @@ static uint16_t pretension_cutoff_speed_rpm_x10;
 
 static bool lights_state = false;
 
+// Periodic multi-value debug telemetry for the middleman web UI. Rate limited so
+// the 6-byte 0xEC frame does not crowd the 1200 baud controller link.
+#define DEBUG_TELEMETRY_INTERVAL_MS 500
+static uint32_t last_debug_telemetry_ms;
+
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent);
 #if HAS_TORQUE_SENSOR
 void apply_pas_torque(uint8_t* target_current);
@@ -182,6 +187,14 @@ void app_process()
 
 	motor_set_target_speed(target_cadence);
 	motor_set_target_current(target_current);
+
+	// Publish target current / target speed / pedal cadence to the middleman.
+	uint32_t telemetry_now_ms = system_ms();
+	if (telemetry_now_ms - last_debug_telemetry_ms >= DEBUG_TELEMETRY_INTERVAL_MS)
+	{
+		last_debug_telemetry_ms = telemetry_now_ms;
+		eventlog_write_telemetry(target_current, target_cadence, pas_get_cadence_rpm_x10());
+	}
 
 	if (target_current > 0)
 	{
@@ -376,54 +389,69 @@ void apply_pretension(uint8_t* target_current)
 
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent)
 {
-	if ((assist_level_data.level.flags & ASSIST_FLAG_PAS) && !(assist_level_data.level.flags & ASSIST_FLAG_PAS_TORQUE))
+	if (!(assist_level_data.level.flags & ASSIST_FLAG_PAS)) {
+		return;
+	}
+	if (assist_level_data.level.flags & ASSIST_FLAG_PAS_TORQUE) {
+		return;
+	}
+	if (!pas_is_pedaling_forwards()) {
+		return;
+	}
+	if (pas_get_pulse_counter() <= g_config.pas_start_delay_pulses) {
+		return;
+	}
+
+	if (assist_level_data.level.flags & ASSIST_FLAG_PAS_VARIABLE)
 	{
-		if (pas_is_pedaling_forwards() && pas_get_pulse_counter() > g_config.pas_start_delay_pulses)
+		uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.max_current_percent);
+		if (current > *target_current)
 		{
-			if (assist_level_data.level.flags & ASSIST_FLAG_PAS_VARIABLE)
-			{
-				uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.max_current_percent);
-				if (current > *target_current)
-				{
-					*target_current = current;
-				}
-			}
-			else
-			{
-				if (assist_level_data.level.max_current_percent > *target_current)
-				{
-					*target_current = assist_level_data.level.max_current_percent;
-				}
+			*target_current = current;
+		}
+	}
+	else
+	{
+		if (assist_level_data.level.max_current_percent > *target_current)
+		{
+			*target_current = assist_level_data.level.max_current_percent;
+		}
 
-				// Per-PAS-level cadence current tapering
-				uint16_t cadence_rpm_x10 = pas_get_cadence_rpm_x10();
-				uint8_t max_curr = assist_level_data.level.max_current_percent;
-				uint8_t min_curr = assist_level_data.level.min_current_percent;
+		// Per-PAS-level cadence current tapering
+		uint16_t cadence_rpm_x10 = pas_get_cadence_rpm_x10();
+		uint8_t max_curr = assist_level_data.level.max_current_percent;
+		uint8_t min_curr = assist_level_data.level.min_current_percent;
+		uint16_t taper_start = assist_level_data.taper_start_rpm_x10;
+		uint16_t taper_end = assist_level_data.taper_end_rpm_x10;
 
-				if (assist_level_data.taper_end_rpm_x10 > assist_level_data.taper_start_rpm_x10)
-				{
-					if (cadence_rpm_x10 >= assist_level_data.taper_end_rpm_x10)
-					{
-						*target_current = min_curr;
-					}
-					else if (cadence_rpm_x10 > assist_level_data.taper_start_rpm_x10)
-					{
-						*target_current = (uint8_t)MAP32(
-							cadence_rpm_x10,
-							assist_level_data.taper_start_rpm_x10,
-							assist_level_data.taper_end_rpm_x10,
-							max_curr,
-							min_curr);
-					}
-				}
-				else
-				{
-					if (cadence_rpm_x10 >= assist_level_data.taper_end_rpm_x10)
-					{
-						*target_current = min_curr;
-					}
-				}
-			}
+		// Assume user mixed them up
+		if (taper_start > taper_end) {
+			uint16_t swap = taper_end;
+			taper_end = taper_start;
+			taper_start = swap;
+		}
+		if (min_curr > max_curr) {
+			uint8_t swap = min_curr;
+			min_curr = max_curr;
+			max_curr = swap;
+		}
+
+		// Three possibilities here.  
+		// 1. We are below the taper start point, so max power
+		// 2. We are within the taper start and end, so calculate tapered power level
+		// 3. We are past the taper end, so set min power
+
+		if (cadence_rpm_x10 <= taper_start) {
+			*target_current = max_curr;
+		} else if (cadence_rpm_x10 >= taper_end) {
+			*target_current = min_curr;
+		} else {
+			*target_current = (uint8_t)MAP32(
+				cadence_rpm_x10,
+				taper_start,
+				taper_end,
+				max_curr,
+				min_curr);
 		}
 	}
 }

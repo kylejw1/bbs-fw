@@ -281,15 +281,15 @@ namespace BBSFW.ViewModel
 			}
 		}
 
-		public bool IsDisplayTargetCurrentEnabled
+		public bool IsDisplayCadenceEnabled
 		{
-			get { return _level.Type.HasFlag(Configuration.AssistFlagsType.DisplayTargetCurrent); }
+			get { return _level.Type.HasFlag(Configuration.AssistFlagsType.DisplayCadence); }
 			set
 			{
-				if (value != IsDisplayTargetCurrentEnabled)
+				if (value != IsDisplayCadenceEnabled)
 				{
-					_level.Type = ApplyDisplayTargetCurrentFlag(value, _level.Type);
-					OnPropertyChanged(nameof(IsDisplayTargetCurrentEnabled));
+					_level.Type = ApplyDisplayCadenceFlag(value, _level.Type);
+					OnPropertyChanged(nameof(IsDisplayCadenceEnabled));
 				}
 			}
 		}
@@ -432,16 +432,16 @@ namespace BBSFW.ViewModel
 			return result;
 		}
 
-		private static Configuration.AssistFlagsType ApplyDisplayTargetCurrentFlag(bool enabled, Configuration.AssistFlagsType flags)
+		private static Configuration.AssistFlagsType ApplyDisplayCadenceFlag(bool enabled, Configuration.AssistFlagsType flags)
 		{
 			byte f = (byte)flags;
 			if (enabled)
 			{
-				f |= (byte)Configuration.AssistFlagsType.DisplayTargetCurrent;
+				f |= (byte)Configuration.AssistFlagsType.DisplayCadence;
 			}
 			else
 			{
-				f &= (byte)~(Configuration.AssistFlagsType.DisplayTargetCurrent);
+				f &= (byte)~(Configuration.AssistFlagsType.DisplayCadence);
 			}
 
 			return (Configuration.AssistFlagsType)f;
