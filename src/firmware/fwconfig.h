@@ -49,6 +49,47 @@
 	#define PAS_PULSES_REVOLUTION				20
 #endif
 
+// ---------------------------------------------------------------------------
+// Motor rotor speed measurement from the motor hall sensors.
+//
+// The three hall signals are routed to both the NEC motor controller and the
+// STC through a shared 3k series resistor (see drawings/pcb/bbshd.sch, motor
+// connector JP4), so the STC can measure motor rotor speed for free. Only
+// traced for BBSHD, the code is compiled out where PIN_HALL_U is undefined.
+// ---------------------------------------------------------------------------
+
+// Hall state transitions per electrical revolution. Fixed by the fact that
+// three halls produce 6 distinct states per electrical cycle. Do not change.
+#define HALL_EDGES_PER_ELEC_REV				6
+
+// Maximum number of hall edge intervals accumulated into one speed sample.
+// Above roughly 14 output rpm the window is closed by this edge count, which
+// bounds the +/-1 tick (100us) quantization error to a couple of percent. Below
+// that the window closes on HALL_WINDOW_MIN_TICKS instead, which is
+// proportionally more accurate, so accuracy improves as the motor slows.
+#define HALL_WINDOW_MAX_EDGES				12
+
+// Publish a speed sample once this many 100us ticks have accumulated, even if
+// fewer than HALL_WINDOW_MAX_EDGES edges were seen. This ties the update rate
+// to the edge rate at low motor speed instead of waiting for more edges.
+#define HALL_WINDOW_MIN_TICKS				500
+
+// No hall edge for this many 100us ticks => motor considered stopped. The edge
+// interval is ~571 ticks at 1 output rpm, so 2500 (250ms) only trips below
+// ~0.25 output rpm while keeping the stopped report prompt.
+#define HALL_STOP_TIMEOUT_PERIODS			2500
+
+// Rotor pole PAIRS (not poles). The BBSHD rotor carries 8 magnets, i.e. 4 pole
+// pairs; a 3 phase BLDC needs pole pairs here, not poles.
+// NOTE: still to be confirmed against a real measurement, see
+// feedback_control_loop_plan.md. Only affects the absolute scale, never the
+// dynamics, so loop tuning can proceed before it is exact.
+#define MOTOR_POLE_PAIRS					4
+
+// Reduction from motor rotor to output (chainring/crank) shaft, x10.
+// NOTE: NOT VERIFIED, calibrate as described in feedback_control_loop_plan.md.
+#define MOTOR_GEAR_RATIO_X10				219
+
  // Applied to both motor and controller tmeperature sensor
 #define MAX_TEMPERATURE							85
 

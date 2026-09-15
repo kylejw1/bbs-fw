@@ -26,9 +26,13 @@
 	#define PIN_PAS1						4, 5
 	#define PIN_PAS2						4, 6
 	
-	//#define PIN_HALL_U					5, 0
-	//#define PIN_HALL_V					3, 4
-	//#define PIN_HALL_W					0, 6
+	// Motor hall sensors. These are shared with the NEC motor controller
+	// through a 3k series resistor (see drawings/pcb/bbshd.sch, motor
+	// connector JP4), so they must only ever be read as high impedance
+	// inputs. Used to measure motor rotor speed, see sensors.c.
+	#define PIN_HALL_U						5, 0
+	#define PIN_HALL_V						3, 4
+	#define PIN_HALL_W						0, 6
 	
 	#define PIN_SPEED_SENSOR				2, 2
 	#define PIN_BRAKE						2, 4
