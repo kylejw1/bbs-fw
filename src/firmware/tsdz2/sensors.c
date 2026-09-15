@@ -107,6 +107,13 @@ uint16_t pas_get_pulse_counter()
 	return tmp;
 }
 
+uint16_t hall_get_motor_rpm_x10()
+{
+	// The TSDZ2 has motor hall sensors but they are not traced to the STM8
+	// pins used by this firmware, so motor rotor speed is not available.
+	return 0;
+}
+
 bool pas_is_pedaling_forwards()
 {
 	uint16_t period_length;

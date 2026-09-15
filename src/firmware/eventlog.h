@@ -76,5 +76,12 @@ void eventlog_set_enabled(bool enabled);
 void eventlog_write(uint8_t evt);
 void eventlog_write_data(uint8_t evt, int16_t data);
 
+// Multi-value debug telemetry frame (0xEC): target current %, target speed %
+// (motor speed setpoint), pedal cadence x10 rpm and motor rotor speed x10 rpm
+// (output shaft equivalent, from the motor hall sensors). The middleman parses
+// this and displays it on the web UI. Only transmitted while the event log is
+// enabled.
+void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent, uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10);
+
 
 #endif

@@ -27,6 +27,12 @@ void speed_sensor_set_signals_per_rpm(uint8_t num_signals);
 bool speed_sensor_is_moving();
 uint16_t speed_sensor_get_rpm_x10();
 
+// Motor rotor speed derived from the motor hall sensors, reported in output
+// shaft (chainring / crank equivalent) rpm x10 so that it is directly
+// comparable to pas_get_cadence_rpm_x10(). Returns 0 when the motor is not
+// turning, or when the target has no traced hall sensors.
+uint16_t hall_get_motor_rpm_x10();
+
 uint16_t torque_sensor_get_nm_x100();
 bool torque_sensor_ok();
 

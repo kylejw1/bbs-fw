@@ -59,6 +59,11 @@ static uint16_t pretension_cutoff_speed_rpm_x10;
 
 static bool lights_state = false;
 
+// Periodic multi-value debug telemetry for the middleman web UI. Rate limited so
+// the 8-byte 0xEC frame does not crowd the 1200 baud controller link.
+#define DEBUG_TELEMETRY_INTERVAL_MS 500
+static uint32_t last_debug_telemetry_ms;
+
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent);
 #if HAS_TORQUE_SENSOR
 void apply_pas_torque(uint8_t* target_current);
@@ -182,6 +187,16 @@ void app_process()
 
 	motor_set_target_speed(target_cadence);
 	motor_set_target_current(target_current);
+
+	// Publish target current, target speed, pedal cadence and motor shaft speed
+	// for the middleman web UI. The display protocol cannot carry these.
+	uint32_t telemetry_now_ms = system_ms();
+	if (telemetry_now_ms - last_debug_telemetry_ms >= DEBUG_TELEMETRY_INTERVAL_MS)
+	{
+		last_debug_telemetry_ms = telemetry_now_ms;
+		eventlog_write_telemetry(target_current, target_cadence,
+			pas_get_cadence_rpm_x10(), hall_get_motor_rpm_x10());
+	}
 
 	if (target_current > 0)
 	{

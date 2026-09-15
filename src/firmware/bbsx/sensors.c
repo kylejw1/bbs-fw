@@ -30,6 +30,14 @@
 #define SPEED_SENSOR_MIN_PULSE_MS_X10	500
 #define SPEED_SENSOR_TIMEOUT_MS_X10		25000
 
+#ifdef PIN_HALL_U
+// Read the three motor hall signals as a single 3 bit state. The pin order is
+// arbitrary, every electrical revolution produces the same 6 state changes.
+#define HALL_READ_STATE()	((uint8_t)(	(GET_PIN_STATE(PIN_HALL_U) ? 0x01 : 0) | \
+										(GET_PIN_STATE(PIN_HALL_V) ? 0x02 : 0) | \
+										(GET_PIN_STATE(PIN_HALL_W) ? 0x04 : 0)))
+#endif
+
 
 // Some versions of the BBSHD motor (hall sensor board)
 // has a PTC thermistor instead of a NTC thermistor.
@@ -79,6 +87,16 @@ static volatile uint16_t speed_ticks_period_length; // pulse length counted in i
 static uint16_t speed_period_counter;
 static bool speed_prev_state;
 static uint8_t speed_ticks_per_rpm;
+
+#ifdef PIN_HALL_U
+static uint16_t hall_period_counter;	// ticks (100us) since last hall state change
+static uint16_t hall_sum_ticks;			// ticks accumulated in the current window
+static uint8_t hall_sum_edges;			// edges accumulated in the current window
+static volatile uint16_t hall_pub_ticks;	// published window: ticks
+static volatile uint8_t hall_pub_edges;		// published window: edges (0 => stopped)
+static uint8_t hall_prev_state;
+static bool hall_active;
+#endif
 
 
 static float thermistor_ntc_calculate_temperature(float R, float invBeta)
@@ -147,11 +165,29 @@ void sensors_init()
 	SET_PIN_INPUT(PIN_PAS2);
 	SET_PIN_INPUT(PIN_SPEED_SENSOR);
 
+#ifdef PIN_HALL_U
+	// Hall signals are shared with the NEC motor controller, only ever read
+	// them as high impedance inputs.
+	SET_PIN_INPUT(PIN_HALL_U);
+	SET_PIN_INPUT(PIN_HALL_V);
+	SET_PIN_INPUT(PIN_HALL_W);
+#endif
+
 	SET_PIN_QUASI(PIN_BRAKE); // input pullup
 	SET_PIN_QUASI(PIN_SHIFT_SENSOR); // input pullup
 
 	pas_prev1 = GET_PIN_STATE(PIN_PAS1);
 	pas_prev2 = GET_PIN_STATE(PIN_PAS2);
+
+#ifdef PIN_HALL_U
+	hall_period_counter = 0;
+	hall_sum_ticks = 0;
+	hall_sum_edges = 0;
+	hall_pub_ticks = 0;
+	hall_pub_edges = 0;
+	hall_active = false;
+	hall_prev_state = HALL_READ_STATE();
+#endif
 
 	timer0_init_sensors();
 }
@@ -247,6 +283,53 @@ uint16_t speed_sensor_get_rpm_x10()
 
 	return 0;
 }
+
+#ifdef PIN_HALL_U
+uint16_t hall_get_motor_rpm_x10()
+{
+	uint16_t ticks;
+	uint8_t edges;
+	uint32_t denominator;
+	uint32_t rpm_x10;
+
+	ET0 = 0; // disable timer0 interrupts
+	edges = hall_pub_edges;
+	ticks = hall_pub_ticks;
+	ET0 = 1;
+
+	if (edges == 0 || ticks == 0)
+	{
+		// motor not turning, or no complete sample yet
+		return 0;
+	}
+
+	// ticks are 100us each, so the window spans ticks * 1e-4 s during which the
+	// rotor turned edges / HALL_EDGES_PER_ELEC_REV electrical revolutions.
+	//
+	//   elec_rpm   = 60 * 1e4 * edges
+	//                / (ticks * edges_per_elec_rev)
+	//   output_rpm = elec_rpm / (pole_pairs * gear_ratio)
+	//
+	// which reduces to the expression below for output_rpm * 10, rounded to
+	// nearest so that slow speeds do not truncate towards zero.
+	denominator = (uint32_t)ticks * MOTOR_POLE_PAIRS * MOTOR_GEAR_RATIO_X10;
+	rpm_x10 = (10000000UL * edges + (denominator / 2)) / denominator;
+
+	if (rpm_x10 > 65535UL)
+	{
+		rpm_x10 = 65535UL;
+	}
+
+	return (uint16_t)rpm_x10;
+}
+#else
+uint16_t hall_get_motor_rpm_x10()
+{
+	// Hall sensor signals have not been traced for this controller, so motor
+	// rotor speed is not available.
+	return 0;
+}
+#endif
 
 uint16_t torque_sensor_get_nm_x100()
 {
@@ -448,6 +531,67 @@ void sensors_timer0_isr() // runs every 100us, see timers.c
 
 		speed_prev_state = spd;
 	}
+
+#ifdef PIN_HALL_U
+	// Motor hall sensors
+	//
+	// Counts any change of the 3 bit hall state. The absolute pin order does
+	// not matter because every electrical revolution produces the same 6 state
+	// changes. A sample is published once HALL_WINDOW_MAX_EDGES edges or
+	// HALL_WINDOW_MIN_TICKS ticks have accumulated, whichever comes first, so
+	// the update rate stays tied to the edge rate at low motor speed. Interval
+	// accumulation stays in 8/16 bit integer arithmetic, the rpm conversion is
+	// done outside the ISR in hall_get_motor_rpm_x10().
+	{
+		uint8_t hall = HALL_READ_STATE();
+
+		// Counted on every tick including the one carrying an edge, otherwise
+		// each interval measures one tick short. That bias is negligible for
+		// the pas and speed sensors whose intervals are thousands of ticks, but
+		// it dominates the hall interval which is only ~3 ticks at full speed.
+		if (hall_period_counter < HALL_STOP_TIMEOUT_PERIODS)
+		{
+			hall_period_counter++;
+		}
+
+		if (hall != hall_prev_state)
+		{
+			hall_prev_state = hall;
+
+			if (hall_active)
+			{
+				hall_sum_ticks += hall_period_counter;
+				hall_sum_edges++;
+
+				if (hall_sum_edges >= HALL_WINDOW_MAX_EDGES ||
+					hall_sum_ticks >= HALL_WINDOW_MIN_TICKS)
+				{
+					hall_pub_edges = hall_sum_edges;
+					hall_pub_ticks = hall_sum_ticks;
+					hall_sum_edges = 0;
+					hall_sum_ticks = 0;
+				}
+			}
+			else
+			{
+				// first edge after standstill, its interval is meaningless
+				hall_sum_ticks = 0;
+				hall_sum_edges = 0;
+				hall_active = true;
+			}
+
+			hall_period_counter = 0;
+		}
+		else if (hall_active && hall_period_counter >= HALL_STOP_TIMEOUT_PERIODS)
+		{
+			// no edges for a long time, motor is stopped
+			hall_active = false;
+			hall_pub_edges = 0;
+			hall_sum_ticks = 0;
+			hall_sum_edges = 0;
+		}
+	}
+#endif
 	
 }
 #pragma restore
