@@ -132,7 +132,7 @@ void app_init()
 void app_process()
 {
 	uint8_t target_current = 0;
-	uint8_t target_cadence = 100;
+	uint8_t target_cadence = 60;
 	uint8_t throttle_percent = throttle_map_response(throttle_read());
 
 	bool pas_engaged = false;
@@ -193,7 +193,7 @@ void app_process()
 	if (telemetry_now_ms - last_debug_telemetry_ms >= DEBUG_TELEMETRY_INTERVAL_MS)
 	{
 		last_debug_telemetry_ms = telemetry_now_ms;
-		eventlog_write_telemetry(target_current, target_cadence, pas_get_cadence_rpm_x10());
+		eventlog_write_telemetry(target_current, target_cadence, pas_get_cadence_rpm_x10(), hall_get_motor_rpm_x10());
 	}
 
 	if (target_current > 0)

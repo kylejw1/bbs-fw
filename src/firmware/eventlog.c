@@ -54,9 +54,9 @@ void eventlog_write_data(uint8_t evt, int16_t data)
 }
 
 // 0xEC frame: header, target current %, target speed %, cadence x10 rpm (hi/lo),
-// checksum. Note this frame is intentionally distinct from the 0xED data frame
-// because it carries three values instead of one.
-void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent, uint16_t cadence_rpm_x10)
+// motor rpm x10 (hi/lo), checksum. Note this frame is intentionally distinct
+// from the 0xED data frame because it carries five values instead of one.
+void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent, uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10)
 {
 	if (!is_enabled)
 	{
@@ -70,5 +70,7 @@ void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_spe
 	uart_write(target_speed_percent); checksum += target_speed_percent;
 	uart_write((uint8_t)(cadence_rpm_x10 >> 8)); checksum += (uint8_t)(cadence_rpm_x10 >> 8);
 	uart_write((uint8_t)cadence_rpm_x10); checksum += (uint8_t)cadence_rpm_x10;
+	uart_write((uint8_t)(motor_rpm_x10 >> 8)); checksum += (uint8_t)(motor_rpm_x10 >> 8);
+	uart_write((uint8_t)motor_rpm_x10); checksum += (uint8_t)motor_rpm_x10;
 	uart_write(checksum);
 }
