@@ -87,6 +87,9 @@ void reload_assist_params();
 
 uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph);
 
+uint8_t compute_PAS_target_speed_pct();
+uint8_t compute_PAS_target_speed_pct_V2();
+
 void app_init()
 {
 	motor_disable();
@@ -155,11 +158,20 @@ void app_process()
 		apply_pas_torque(&target_current);
 #endif // HAS_TORQUE_SENSOR
 
-		pas_engaged = target_current > 0;
+		// Register pas_engaged when pedalling forwards so that global throttle speed limit works.
+		pas_engaged = pas_is_pedaling_forwards();
 
 		apply_cruise(&target_current, throttle_percent);
 
+		// NB: Only updates target current to throttle current request if greater than PAS current request!
 		throttle_override = apply_throttle(&target_current, throttle_percent);
+
+		// Compute and save throttle current request (taken from apply_throttle since it returns a boolean)
+		uint8_t throttle_current = (uint8_t)MAP16(throttle_percent, 0, 100, g_config.throttle_start_percent, assist_level_data.level.max_throttle_current_percent);
+
+		uint8_t cur_pas_cadence_rpm_x10 = pas_get_cadence_rpm_x10();
+
+		uint8_t pas_target_speed_pct = compute_PAS_target_speed_pct_V2(); // Always keep PAS target speed updated based on cadence.
 
 		// override target cadence if configured in assist level
 		if (throttle_override &&
@@ -167,6 +179,28 @@ void app_process()
 			(assist_level_data.level.flags & ASSIST_FLAG_OVERRIDE_CADENCE))
 		{
 			target_cadence = THROTTLE_CADENCE_OVERRIDE_PERCENT;
+			target_current = throttle_current;
+		}
+		// Throttle is active, use configured max cadence and throttle current (regardless of pedalling or not)
+		else if (throttle_percent > 0)
+		{
+			target_cadence = assist_level_data.level.max_cadence_percent;
+			target_current = throttle_current;
+		}
+		// Pedalling forwards with no throttle, use PAS current and cadence / speed
+		else if (pas_is_pedaling_forwards()) 
+		{
+			target_cadence = pas_target_speed_pct;
+		}
+		// Coasting the bike, so use maximum assist level speed but 1% current
+		else
+		{
+			target_cadence = assist_level_data.level.max_cadence_percent;
+			// This is just a safety precaution to make sure it never applies more than 1% in this block.
+			if (target_current > 1)
+			{
+				target_current = 1;
+			}
 		}
 	}
 
@@ -986,4 +1020,49 @@ uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph)
 {
 	float radius_mm = EXPAND_U16(g_config.wheel_size_inch_x10_u16h, g_config.wheel_size_inch_x10_u16l) * 1.27f; // g_config.wheel_size_inch_x10 / 2.f * 2.54f;
 	return (uint16_t)(25000.f / (3 * 3.14159f * radius_mm) * speed_kph);
+}
+
+uint8_t compute_PAS_target_speed_pct()
+{
+	static uint32_t next_fetch_current_cadence_rpm_x10 = 0;
+	static uint8_t filtered_PAS_target_speed_pct = 0;
+	uint8_t current_PAS_target_speed_pct = 0;
+
+	if (system_ms() > next_fetch_current_cadence_rpm_x10)
+	{
+		next_fetch_current_cadence_rpm_x10 = system_ms() + 100;
+		current_PAS_target_speed_pct = (uint8_t)MAP32(pas_get_cadence_rpm_x10(), 0, MAX_CADENCE_RPM_X10, 0, 100);
+		filtered_PAS_target_speed_pct = EXPONENTIAL_FILTER(filtered_PAS_target_speed_pct, current_PAS_target_speed_pct, 4);
+	}
+
+	return filtered_PAS_target_speed_pct;
+}
+
+uint8_t compute_PAS_target_speed_pct_V2()
+{
+	static uint32_t next_fetch_current_cadence_rpm_x10 = 0;
+	static uint8_t filtered_PAS_target_speed_pct = 0;
+	uint8_t current_PAS_target_speed_pct = 0;
+
+	static uint16_t current_raw_pas_cadence_x10 = 0;
+
+	if (system_ms() > next_fetch_current_cadence_rpm_x10)
+	{
+		next_fetch_current_cadence_rpm_x10 = system_ms() + 100;
+		current_raw_pas_cadence_x10 = pas_get_cadence_rpm_x10();
+
+		if (current_raw_pas_cadence_x10 < 300)
+		{
+			current_PAS_target_speed_pct = (uint8_t)MAP32(current_raw_pas_cadence_x10, 0, 1000, 0, 100);
+		}
+		else
+		{
+			current_PAS_target_speed_pct = (uint8_t)MAP32(current_raw_pas_cadence_x10, 0, 1200, 0, 100) + 5;
+		}
+		// Clip between 10% (to help startup) and 100%
+		current_PAS_target_speed_pct = CLAMP(current_PAS_target_speed_pct, 10, 100);
+
+		filtered_PAS_target_speed_pct = EXPONENTIAL_FILTER(filtered_PAS_target_speed_pct, current_PAS_target_speed_pct, 4);
+	}
+	return filtered_PAS_target_speed_pct;
 }

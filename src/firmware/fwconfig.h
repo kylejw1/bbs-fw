@@ -35,12 +35,12 @@
 #endif
 
 #if defined(BBS02)
-	#define MAX_CADENCE_RPM_X10					1500
+#define MAX_CADENCE_RPM_X10					1500
 #elif defined(BBSHD)
-	// Measured on BBSHD at 48V
-	#define MAX_CADENCE_RPM_X10					1680
+ // Measured on BBSHD at 48V
+#define MAX_CADENCE_RPM_X10					1200 // 1680
 #else
-	#define MAX_CADENCE_RPM_X10					1200
+#define MAX_CADENCE_RPM_X10					1200
 #endif
 
 #if defined(BBS02) || defined(BBSHD)
@@ -145,7 +145,7 @@
 #define THROTTLE_RESPONSE_QUADRATIC				2
 #define THROTTLE_RESPONSE_CUSTOM				3
 
-#define THROTTLE_RESPONSE_CURVE					THROTTLE_RESPONSE_CUSTOM
+#define THROTTLE_RESPONSE_CURVE					THROTTLE_RESPONSE_QUADRATIC
 
 // Custom throttle map
 // y = pow(x / 100.0, 1.5) * 100.0
