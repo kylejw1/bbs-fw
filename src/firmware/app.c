@@ -1053,6 +1053,7 @@ uint8_t compute_PAS_target_speed_pct_V2()
 
 		if (current_raw_pas_cadence_x10 < 300)
 		{
+			// TODO: The 1000 here and 1200 after.. might need to change?  seem to be based on max speed @48v?
 			current_PAS_target_speed_pct = (uint8_t)MAP32(current_raw_pas_cadence_x10, 0, 1000, 0, 100);
 		}
 		else
