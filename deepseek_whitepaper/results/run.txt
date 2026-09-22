@@ -1,0 +1,73 @@
+[commissioning] rho_hat converged to 0.450 (0.448 at midpoint)
+
+=== 1_steady_flat ===
+         inst/all  RMSE=  5.11  bias= -2.23  R2= 0.150  true_mean= 13.01  est_mean= 10.78
+     inst/engaged  RMSE=  5.11  bias= -2.23  R2= 0.150  true_mean= 13.01  est_mean= 10.78
+     mean/engaged  RMSE=  4.20  bias= -2.21  R2=-0.595  true_mean= 12.99  est_mean= 10.77
+  clutch classification accuracy: 99.56 %
+    window         cruise  true= 12.98 est= 11.98  RMSE= 1.89
+
+=== 2_crowded_slow ===
+         inst/all  RMSE=  2.06  bias= -1.41  R2= 0.422  true_mean=  6.74  est_mean=  5.33
+     inst/engaged  RMSE=  2.09  bias= -1.42  R2= 0.362  true_mean=  6.97  est_mean=  5.55
+     mean/engaged  RMSE=  1.87  bias= -1.41  R2= 0.081  true_mean=  6.90  est_mean=  5.49
+  clutch classification accuracy: 99.58 %
+    window    slow cruise  true=  6.73 est=  5.77  RMSE= 0.98
+
+=== 3_uphill ===
+         inst/all  RMSE=  7.44  bias= -3.06  R2= 0.295  true_mean= 19.67  est_mean= 16.61
+     inst/engaged  RMSE=  7.44  bias= -3.06  R2= 0.295  true_mean= 19.67  est_mean= 16.61
+     mean/engaged  RMSE=  6.79  bias= -3.05  R2= 0.050  true_mean= 19.65  est_mean= 16.60
+  clutch classification accuracy: 99.67 %
+    window    early climb  true= 20.67 est= 20.77  RMSE= 2.57
+    window   steady climb  true= 20.86 est= 20.84  RMSE= 2.52
+
+=== 4_downhill ===
+         inst/all  RMSE=  0.18  bias= -0.01  R2=-0.291  true_mean=  0.01  est_mean=  0.00
+     inst/engaged  RMSE=  3.15  bias= -3.15  R2=-1983.158  true_mean=  3.15  est_mean=  0.00
+     mean/engaged  RMSE=  1.77  bias= -1.77  R2=-280.820  true_mean=  1.77  est_mean=  0.00
+  clutch classification accuracy: 98.78 %
+    window        descent  true=  0.00 est=  0.00  RMSE= 0.00
+
+=== 5_stop_resume ===
+         inst/all  RMSE=  4.96  bias= -2.21  R2= 0.377  true_mean= 12.03  est_mean=  9.83
+     inst/engaged  RMSE=  5.14  bias= -2.39  R2= 0.138  true_mean= 12.95  est_mean= 10.56
+     mean/engaged  RMSE=  4.24  bias= -2.37  R2=-0.609  true_mean= 12.91  est_mean= 10.55
+  clutch classification accuracy: 98.32 %
+    window         before  true= 12.99 est= 12.00  RMSE= 1.87
+    window   after resume  true= 12.87 est= 11.63  RMSE= 2.21
+
+=== 6_accelerate ===
+         inst/all  RMSE= 10.99  bias= -3.32  R2=-0.099  true_mean= 20.95  est_mean= 17.63
+     inst/engaged  RMSE= 10.99  bias= -3.32  R2=-0.099  true_mean= 20.95  est_mean= 17.63
+     mean/engaged  RMSE=  9.45  bias= -3.27  R2=-0.762  true_mean= 20.89  est_mean= 17.61
+  clutch classification accuracy: 99.20 %
+    window          accel  true= 27.23 est= 28.99  RMSE= 3.73
+    window        settled  true= 20.07 est= 18.49  RMSE= 2.55
+
+=== 7_ghost_pedal ===
+         inst/all  RMSE=  2.34  bias= +1.51  R2=-12.258  true_mean=  1.51  est_mean=  3.02
+     inst/engaged  RMSE=   nan  bias=  +nan  R2=   nan  true_mean=   nan  est_mean=   nan
+     mean/engaged  RMSE=   nan  bias=  +nan  R2=   nan  true_mean=   nan  est_mean=   nan
+  clutch classification accuracy: 99.53 %
+    window          ghost  true=  1.50 est=  2.98  RMSE= 1.54
+
+=== 8_mixed ===
+         inst/all  RMSE= 11.75  bias= -0.04  R2=-0.122  true_mean= 11.18  est_mean= 11.14
+     inst/engaged  RMSE= 11.09  bias= -1.60  R2=-0.310  true_mean= 16.60  est_mean= 15.00
+     mean/engaged  RMSE= 10.69  bias= -1.57  R2=-0.720  true_mean= 16.56  est_mean= 14.99
+  clutch classification accuracy: 98.21 %
+    window           flat  true= 13.61 est= 12.44  RMSE= 2.06
+    window          climb  true= 21.05 est= 18.69  RMSE= 3.44
+    window        descent  true=  0.00 est=  0.00  RMSE= 0.00
+    window      recovered  true= 12.27 est= 11.27  RMSE= 1.93
+
+=== 9_climb_bias_drift ===
+         inst/all  RMSE=  6.73  bias= -3.73  R2= 0.594  true_mean= 22.73  est_mean= 19.00
+     inst/engaged  RMSE=  6.73  bias= -3.73  R2= 0.594  true_mean= 22.73  est_mean= 19.00
+     mean/engaged  RMSE=  5.98  bias= -3.72  R2= 0.489  true_mean= 22.72  est_mean= 19.00
+  clutch classification accuracy: 99.84 %
+    window    before step  true= 20.94 est= 19.00  RMSE= 3.17
+    window     after step  true= 27.57 est= 24.98  RMSE= 4.20
+
+wrote /home/kyle/dev/tmp/results/summary.json and per-scenario figures

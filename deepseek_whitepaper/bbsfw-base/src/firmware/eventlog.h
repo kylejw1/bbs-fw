@@ -78,16 +78,11 @@ void eventlog_write(uint8_t evt);
 void eventlog_write_data(uint8_t evt, int16_t data);
 
 // Multi-value debug telemetry frame (0xEC): target current %, target speed %
-// (motor speed setpoint), pedal cadence x10 rpm, motor rotor speed x10 rpm
-// (output shaft equivalent, from the motor hall sensors), virtual load sensing
-// estimator output and its status flags. The middleman parses this and displays
-// it on the web UI. Only transmitted while the event log is enabled.
-//
-// rider_torque_dnm and load_bias_dnm are Nm x10 and signed; load_flags carries
-// the LOADSENSOR_FLAG_* bits plus a 2 bit confidence field. See loadsensor.h.
-void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent,
-	uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10,
-	int16_t rider_torque_dnm, int16_t load_bias_dnm, uint8_t load_flags);
+// (motor speed setpoint), pedal cadence x10 rpm and motor rotor speed x10 rpm
+// (output shaft equivalent, from the motor hall sensors). The middleman parses
+// this and displays it on the web UI. Only transmitted while the event log is
+// enabled.
+void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent, uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10);
 
 
 #endif

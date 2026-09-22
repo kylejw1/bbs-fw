@@ -15,7 +15,6 @@
 #include "lights.h"
 #include "uart.h"
 #include "eventlog.h"
-#include "loadsensor.h"
 #include "util.h"
 #include "system.h"
 
@@ -64,14 +63,6 @@ static bool lights_state = false;
 // the 8-byte 0xEC frame does not crowd the 1200 baud controller link.
 #define DEBUG_TELEMETRY_INTERVAL_MS 500
 static uint32_t last_debug_telemetry_ms;
-
-// Load sensing estimator scheduling. __xdata because internal RAM is full.
-static __xdata uint32_t next_loadsensor_ms;
-
-// Virtual load sensing estimator sample period. Its inertial term assumes a
-// known sample interval, so this must stay fixed. 50 ms matches the update rate
-// of the motor hall speed measurement, which is the fastest relevant input.
-#define LOADSENSOR_INTERVAL_MS 50
 
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent);
 #if HAS_TORQUE_SENSOR
@@ -140,8 +131,6 @@ void app_init()
 	{
 		app_set_operation_mode(OPERATION_MODE_SPORT);
 	}
-
-	loadsensor_init(g_config.max_current_amps);
 }
 
 void app_process()
@@ -233,32 +222,14 @@ void app_process()
 	motor_set_target_speed(target_cadence);
 	motor_set_target_current(target_current);
 
-	// Virtual load sensing estimator. Purely observational: it reads the two
-	// cadences and the commanded current, and never writes anything that motor
-	// control depends on. Run on its own fixed period because the inertial term
-	// assumes a known sample interval.
-	{
-		uint32_t loadsensor_now_ms = system_ms();
-
-		if (loadsensor_now_ms >= next_loadsensor_ms)
-		{
-			next_loadsensor_ms = loadsensor_now_ms + LOADSENSOR_INTERVAL_MS;
-			loadsensor_process(pas_get_cadence_rpm_x10(), hall_get_motor_rpm_x10(),
-				target_current, loadsensor_now_ms);
-		}
-	}
-
-	// Publish target current, target speed, pedal cadence, motor shaft speed and
-	// the estimated rider load for the middleman web UI. The display protocol
-	// cannot carry these.
+	// Publish target current, target speed, pedal cadence and motor shaft speed
+	// for the middleman web UI. The display protocol cannot carry these.
 	uint32_t telemetry_now_ms = system_ms();
 	if (telemetry_now_ms - last_debug_telemetry_ms >= DEBUG_TELEMETRY_INTERVAL_MS)
 	{
 		last_debug_telemetry_ms = telemetry_now_ms;
 		eventlog_write_telemetry(target_current, target_cadence,
-			pas_get_cadence_rpm_x10(), hall_get_motor_rpm_x10(),
-			loadsensor_get_rider_torque_dnm(), loadsensor_get_load_bias_dnm(),
-			loadsensor_get_flags());
+			pas_get_cadence_rpm_x10(), hall_get_motor_rpm_x10());
 	}
 
 	if (target_current > 0)

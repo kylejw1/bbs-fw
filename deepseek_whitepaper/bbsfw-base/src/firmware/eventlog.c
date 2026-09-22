@@ -54,16 +54,9 @@ void eventlog_write_data(uint8_t evt, int16_t data)
 }
 
 // 0xEC frame: header, target current %, target speed %, cadence x10 rpm (hi/lo),
-// motor rpm x10 (hi/lo), rider torque Nm x10 (hi/lo, signed), load bias Nm x10
-// (hi/lo, signed), load flags, checksum. Thirteen bytes including the checksum.
-//
-// This grew from eight bytes when the virtual load sensing estimator was added.
-// It is emitted every DEBUG_TELEMETRY_INTERVAL_MS (500 ms), so it occupies about
-// 11% of the 1200 baud controller<->display link; the display protocol has the
-// remainder. Raise the interval in app.c if the display ever feels sluggish.
-void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent,
-	uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10,
-	int16_t rider_torque_dnm, int16_t load_bias_dnm, uint8_t load_flags)
+// motor rpm x10 (hi/lo), checksum. Note this frame is intentionally distinct
+// from the 0xED data frame because it carries five values instead of one.
+void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_speed_percent, uint16_t cadence_rpm_x10, uint16_t motor_rpm_x10)
 {
 	if (!is_enabled)
 	{
@@ -71,8 +64,6 @@ void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_spe
 	}
 
 	uint8_t checksum = 0;
-	uint16_t torque = (uint16_t)rider_torque_dnm;
-	uint16_t bias = (uint16_t)load_bias_dnm;
 
 	uart_write(0xec); checksum += (uint8_t)0xec;
 	uart_write(target_current_percent); checksum += target_current_percent;
@@ -81,10 +72,5 @@ void eventlog_write_telemetry(uint8_t target_current_percent, uint8_t target_spe
 	uart_write((uint8_t)cadence_rpm_x10); checksum += (uint8_t)cadence_rpm_x10;
 	uart_write((uint8_t)(motor_rpm_x10 >> 8)); checksum += (uint8_t)(motor_rpm_x10 >> 8);
 	uart_write((uint8_t)motor_rpm_x10); checksum += (uint8_t)motor_rpm_x10;
-	uart_write((uint8_t)(torque >> 8)); checksum += (uint8_t)(torque >> 8);
-	uart_write((uint8_t)torque); checksum += (uint8_t)torque;
-	uart_write((uint8_t)(bias >> 8)); checksum += (uint8_t)(bias >> 8);
-	uart_write((uint8_t)bias); checksum += (uint8_t)bias;
-	uart_write(load_flags); checksum += load_flags;
 	uart_write(checksum);
 }

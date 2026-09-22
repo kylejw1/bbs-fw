@@ -1,0 +1,435 @@
+                                      1 ;--------------------------------------------------------
+                                      2 ; File Created by SDCC : free open source ANSI-C Compiler
+                                      3 ; Version 4.2.0 #13081 (Linux)
+                                      4 ;--------------------------------------------------------
+                                      5 	.module t8
+                                      6 	.optsdcc -mmcs51 --model-large
+                                      7 	
+                                      8 ;--------------------------------------------------------
+                                      9 ; Public variables in this module
+                                     10 ;--------------------------------------------------------
+                                     11 	.globl _f
+                                     12 	.globl _f_PARM_3
+                                     13 	.globl _f_PARM_2
+                                     14 ;--------------------------------------------------------
+                                     15 ; special function registers
+                                     16 ;--------------------------------------------------------
+                                     17 	.area RSEG    (ABS,DATA)
+      000000                         18 	.org 0x0000
+                                     19 ;--------------------------------------------------------
+                                     20 ; special function bits
+                                     21 ;--------------------------------------------------------
+                                     22 	.area RSEG    (ABS,DATA)
+      000000                         23 	.org 0x0000
+                                     24 ;--------------------------------------------------------
+                                     25 ; overlayable register banks
+                                     26 ;--------------------------------------------------------
+                                     27 	.area REG_BANK_0	(REL,OVR,DATA)
+      000000                         28 	.ds 8
+                                     29 ;--------------------------------------------------------
+                                     30 ; internal ram data
+                                     31 ;--------------------------------------------------------
+                                     32 	.area DSEG    (DATA)
+      000000                         33 _f_sloc0_1_0:
+      000000                         34 	.ds 4
+      000004                         35 _f_sloc1_1_0:
+      000004                         36 	.ds 4
+      000008                         37 _f_sloc2_1_0:
+      000008                         38 	.ds 4
+      00000C                         39 _f_sloc3_1_0:
+      00000C                         40 	.ds 4
+      000010                         41 _f_sloc4_1_0:
+      000010                         42 	.ds 4
+                                     43 ;--------------------------------------------------------
+                                     44 ; overlayable items in internal ram
+                                     45 ;--------------------------------------------------------
+                                     46 ;--------------------------------------------------------
+                                     47 ; indirectly addressable internal ram data
+                                     48 ;--------------------------------------------------------
+                                     49 	.area ISEG    (DATA)
+                                     50 ;--------------------------------------------------------
+                                     51 ; absolute internal ram data
+                                     52 ;--------------------------------------------------------
+                                     53 	.area IABS    (ABS,DATA)
+                                     54 	.area IABS    (ABS,DATA)
+                                     55 ;--------------------------------------------------------
+                                     56 ; bit data
+                                     57 ;--------------------------------------------------------
+                                     58 	.area BSEG    (BIT)
+                                     59 ;--------------------------------------------------------
+                                     60 ; paged external ram data
+                                     61 ;--------------------------------------------------------
+                                     62 	.area PSEG    (PAG,XDATA)
+                                     63 ;--------------------------------------------------------
+                                     64 ; external ram data
+                                     65 ;--------------------------------------------------------
+                                     66 	.area XSEG    (XDATA)
+      000000                         67 _f_PARM_2:
+      000000                         68 	.ds 4
+      000004                         69 _f_PARM_3:
+      000004                         70 	.ds 4
+      000008                         71 _f_x_65536_1:
+      000008                         72 	.ds 4
+                                     73 ;--------------------------------------------------------
+                                     74 ; absolute external ram data
+                                     75 ;--------------------------------------------------------
+                                     76 	.area XABS    (ABS,XDATA)
+                                     77 ;--------------------------------------------------------
+                                     78 ; external initialized ram data
+                                     79 ;--------------------------------------------------------
+                                     80 	.area XISEG   (XDATA)
+                                     81 	.area HOME    (CODE)
+                                     82 	.area GSINIT0 (CODE)
+                                     83 	.area GSINIT1 (CODE)
+                                     84 	.area GSINIT2 (CODE)
+                                     85 	.area GSINIT3 (CODE)
+                                     86 	.area GSINIT4 (CODE)
+                                     87 	.area GSINIT5 (CODE)
+                                     88 	.area GSINIT  (CODE)
+                                     89 	.area GSFINAL (CODE)
+                                     90 	.area CSEG    (CODE)
+                                     91 ;--------------------------------------------------------
+                                     92 ; global & static initialisations
+                                     93 ;--------------------------------------------------------
+                                     94 	.area HOME    (CODE)
+                                     95 	.area GSINIT  (CODE)
+                                     96 	.area GSFINAL (CODE)
+                                     97 	.area GSINIT  (CODE)
+                                     98 ;--------------------------------------------------------
+                                     99 ; Home
+                                    100 ;--------------------------------------------------------
+                                    101 	.area HOME    (CODE)
+                                    102 	.area HOME    (CODE)
+                                    103 ;--------------------------------------------------------
+                                    104 ; code
+                                    105 ;--------------------------------------------------------
+                                    106 	.area CSEG    (CODE)
+                                    107 ;------------------------------------------------------------
+                                    108 ;Allocation info for local variables in function 'f'
+                                    109 ;------------------------------------------------------------
+                                    110 ;sloc0                     Allocated with name '_f_sloc0_1_0'
+                                    111 ;sloc1                     Allocated with name '_f_sloc1_1_0'
+                                    112 ;sloc2                     Allocated with name '_f_sloc2_1_0'
+                                    113 ;sloc3                     Allocated with name '_f_sloc3_1_0'
+                                    114 ;sloc4                     Allocated with name '_f_sloc4_1_0'
+                                    115 ;y                         Allocated with name '_f_PARM_2'
+                                    116 ;z                         Allocated with name '_f_PARM_3'
+                                    117 ;x                         Allocated with name '_f_x_65536_1'
+                                    118 ;a                         Allocated with name '_f_a_65536_2'
+                                    119 ;b                         Allocated with name '_f_b_65536_2'
+                                    120 ;c                         Allocated with name '_f_c_65536_2'
+                                    121 ;d                         Allocated with name '_f_d_65536_2'
+                                    122 ;e                         Allocated with name '_f_e_65536_2'
+                                    123 ;g                         Allocated with name '_f_g_65536_2'
+                                    124 ;h                         Allocated with name '_f_h_65536_2'
+                                    125 ;i                         Allocated with name '_f_i_65536_2'
+                                    126 ;j                         Allocated with name '_f_j_65536_2'
+                                    127 ;k                         Allocated with name '_f_k_65536_2'
+                                    128 ;l                         Allocated with name '_f_l_65536_2'
+                                    129 ;m                         Allocated with name '_f_m_65536_2'
+                                    130 ;------------------------------------------------------------
+                                    131 ;	t8.c:2: int16_t f(int32_t x,int32_t y,int32_t z) {
+                                    132 ;	-----------------------------------------
+                                    133 ;	 function f
+                                    134 ;	-----------------------------------------
+      000000                        135 _f:
+                           000007   136 	ar7 = 0x07
+                           000006   137 	ar6 = 0x06
+                           000005   138 	ar5 = 0x05
+                           000004   139 	ar4 = 0x04
+                           000003   140 	ar3 = 0x03
+                           000002   141 	ar2 = 0x02
+                           000001   142 	ar1 = 0x01
+                           000000   143 	ar0 = 0x00
+      000000 AF 82            [24]  144 	mov	r7,dpl
+      000002 AE 83            [24]  145 	mov	r6,dph
+      000004 AD F0            [24]  146 	mov	r5,b
+      000006 FC               [12]  147 	mov	r4,a
+      000007 90r00r08         [24]  148 	mov	dptr,#_f_x_65536_1
+      00000A EF               [12]  149 	mov	a,r7
+      00000B F0               [24]  150 	movx	@dptr,a
+      00000C EE               [12]  151 	mov	a,r6
+      00000D A3               [24]  152 	inc	dptr
+      00000E F0               [24]  153 	movx	@dptr,a
+      00000F ED               [12]  154 	mov	a,r5
+      000010 A3               [24]  155 	inc	dptr
+      000011 F0               [24]  156 	movx	@dptr,a
+      000012 EC               [12]  157 	mov	a,r4
+      000013 A3               [24]  158 	inc	dptr
+      000014 F0               [24]  159 	movx	@dptr,a
+                                    160 ;	t8.c:3: int32_t a=x*7,b=y*7,c=z*7,d=a+b,e=c-d,g=e>>3,h=g+a,i=h-b,j=i+c,k=j-d,l=k+e,m=l-g;
+      000015 90r00r08         [24]  161 	mov	dptr,#_f_x_65536_1
+      000018 E0               [24]  162 	movx	a,@dptr
+      000019 FC               [12]  163 	mov	r4,a
+      00001A A3               [24]  164 	inc	dptr
+      00001B E0               [24]  165 	movx	a,@dptr
+      00001C FD               [12]  166 	mov	r5,a
+      00001D A3               [24]  167 	inc	dptr
+      00001E E0               [24]  168 	movx	a,@dptr
+      00001F FE               [12]  169 	mov	r6,a
+      000020 A3               [24]  170 	inc	dptr
+      000021 E0               [24]  171 	movx	a,@dptr
+      000022 FF               [12]  172 	mov	r7,a
+      000023 90r00r00         [24]  173 	mov	dptr,#__mullong_PARM_2
+      000026 EC               [12]  174 	mov	a,r4
+      000027 F0               [24]  175 	movx	@dptr,a
+      000028 ED               [12]  176 	mov	a,r5
+      000029 A3               [24]  177 	inc	dptr
+      00002A F0               [24]  178 	movx	@dptr,a
+      00002B EE               [12]  179 	mov	a,r6
+      00002C A3               [24]  180 	inc	dptr
+      00002D F0               [24]  181 	movx	@dptr,a
+      00002E EF               [12]  182 	mov	a,r7
+      00002F A3               [24]  183 	inc	dptr
+      000030 F0               [24]  184 	movx	@dptr,a
+      000031 90 00 07         [24]  185 	mov	dptr,#(0x07&0x00ff)
+      000034 E4               [12]  186 	clr	a
+      000035 F5 F0            [12]  187 	mov	b,a
+      000037 12r00r00         [24]  188 	lcall	__mullong
+      00003A AC 82            [24]  189 	mov	r4,dpl
+      00003C AD 83            [24]  190 	mov	r5,dph
+      00003E AE F0            [24]  191 	mov	r6,b
+      000040 FF               [12]  192 	mov	r7,a
+      000041 90r00r00         [24]  193 	mov	dptr,#_f_PARM_2
+      000044 E0               [24]  194 	movx	a,@dptr
+      000045 F8               [12]  195 	mov	r0,a
+      000046 A3               [24]  196 	inc	dptr
+      000047 E0               [24]  197 	movx	a,@dptr
+      000048 F9               [12]  198 	mov	r1,a
+      000049 A3               [24]  199 	inc	dptr
+      00004A E0               [24]  200 	movx	a,@dptr
+      00004B FA               [12]  201 	mov	r2,a
+      00004C A3               [24]  202 	inc	dptr
+      00004D E0               [24]  203 	movx	a,@dptr
+      00004E FB               [12]  204 	mov	r3,a
+      00004F 90r00r00         [24]  205 	mov	dptr,#__mullong_PARM_2
+      000052 E8               [12]  206 	mov	a,r0
+      000053 F0               [24]  207 	movx	@dptr,a
+      000054 E9               [12]  208 	mov	a,r1
+      000055 A3               [24]  209 	inc	dptr
+      000056 F0               [24]  210 	movx	@dptr,a
+      000057 EA               [12]  211 	mov	a,r2
+      000058 A3               [24]  212 	inc	dptr
+      000059 F0               [24]  213 	movx	@dptr,a
+      00005A EB               [12]  214 	mov	a,r3
+      00005B A3               [24]  215 	inc	dptr
+      00005C F0               [24]  216 	movx	@dptr,a
+      00005D 90 00 07         [24]  217 	mov	dptr,#(0x07&0x00ff)
+      000060 E4               [12]  218 	clr	a
+      000061 F5 F0            [12]  219 	mov	b,a
+      000063 C0 07            [24]  220 	push	ar7
+      000065 C0 06            [24]  221 	push	ar6
+      000067 C0 05            [24]  222 	push	ar5
+      000069 C0 04            [24]  223 	push	ar4
+      00006B 12r00r00         [24]  224 	lcall	__mullong
+      00006E 85 82*00         [24]  225 	mov	_f_sloc0_1_0,dpl
+      000071 85 83*01         [24]  226 	mov	(_f_sloc0_1_0 + 1),dph
+      000074 85 F0*02         [24]  227 	mov	(_f_sloc0_1_0 + 2),b
+      000077 F5*03            [12]  228 	mov	(_f_sloc0_1_0 + 3),a
+      000079 90r00r04         [24]  229 	mov	dptr,#_f_PARM_3
+      00007C E0               [24]  230 	movx	a,@dptr
+      00007D F8               [12]  231 	mov	r0,a
+      00007E A3               [24]  232 	inc	dptr
+      00007F E0               [24]  233 	movx	a,@dptr
+      000080 F9               [12]  234 	mov	r1,a
+      000081 A3               [24]  235 	inc	dptr
+      000082 E0               [24]  236 	movx	a,@dptr
+      000083 FA               [12]  237 	mov	r2,a
+      000084 A3               [24]  238 	inc	dptr
+      000085 E0               [24]  239 	movx	a,@dptr
+      000086 FB               [12]  240 	mov	r3,a
+      000087 90r00r00         [24]  241 	mov	dptr,#__mullong_PARM_2
+      00008A E8               [12]  242 	mov	a,r0
+      00008B F0               [24]  243 	movx	@dptr,a
+      00008C E9               [12]  244 	mov	a,r1
+      00008D A3               [24]  245 	inc	dptr
+      00008E F0               [24]  246 	movx	@dptr,a
+      00008F EA               [12]  247 	mov	a,r2
+      000090 A3               [24]  248 	inc	dptr
+      000091 F0               [24]  249 	movx	@dptr,a
+      000092 EB               [12]  250 	mov	a,r3
+      000093 A3               [24]  251 	inc	dptr
+      000094 F0               [24]  252 	movx	@dptr,a
+      000095 90 00 07         [24]  253 	mov	dptr,#(0x07&0x00ff)
+      000098 E4               [12]  254 	clr	a
+      000099 F5 F0            [12]  255 	mov	b,a
+      00009B 12r00r00         [24]  256 	lcall	__mullong
+      00009E 85 82*04         [24]  257 	mov	_f_sloc1_1_0,dpl
+      0000A1 85 83*05         [24]  258 	mov	(_f_sloc1_1_0 + 1),dph
+      0000A4 85 F0*06         [24]  259 	mov	(_f_sloc1_1_0 + 2),b
+      0000A7 F5*07            [12]  260 	mov	(_f_sloc1_1_0 + 3),a
+      0000A9 D0 04            [24]  261 	pop	ar4
+      0000AB D0 05            [24]  262 	pop	ar5
+      0000AD D0 06            [24]  263 	pop	ar6
+      0000AF D0 07            [24]  264 	pop	ar7
+      0000B1 E5*00            [12]  265 	mov	a,_f_sloc0_1_0
+      0000B3 2C               [12]  266 	add	a,r4
+      0000B4 F5*08            [12]  267 	mov	_f_sloc2_1_0,a
+      0000B6 E5*01            [12]  268 	mov	a,(_f_sloc0_1_0 + 1)
+      0000B8 3D               [12]  269 	addc	a,r5
+      0000B9 F5*09            [12]  270 	mov	(_f_sloc2_1_0 + 1),a
+      0000BB E5*02            [12]  271 	mov	a,(_f_sloc0_1_0 + 2)
+      0000BD 3E               [12]  272 	addc	a,r6
+      0000BE F5*0A            [12]  273 	mov	(_f_sloc2_1_0 + 2),a
+      0000C0 E5*03            [12]  274 	mov	a,(_f_sloc0_1_0 + 3)
+      0000C2 3F               [12]  275 	addc	a,r7
+      0000C3 F5*0B            [12]  276 	mov	(_f_sloc2_1_0 + 3),a
+      0000C5 E5*04            [12]  277 	mov	a,_f_sloc1_1_0
+      0000C7 C3               [12]  278 	clr	c
+      0000C8 95*08            [12]  279 	subb	a,_f_sloc2_1_0
+      0000CA F5*0C            [12]  280 	mov	_f_sloc3_1_0,a
+      0000CC E5*05            [12]  281 	mov	a,(_f_sloc1_1_0 + 1)
+      0000CE 95*09            [12]  282 	subb	a,(_f_sloc2_1_0 + 1)
+      0000D0 F5*0D            [12]  283 	mov	(_f_sloc3_1_0 + 1),a
+      0000D2 E5*06            [12]  284 	mov	a,(_f_sloc1_1_0 + 2)
+      0000D4 95*0A            [12]  285 	subb	a,(_f_sloc2_1_0 + 2)
+      0000D6 F5*0E            [12]  286 	mov	(_f_sloc3_1_0 + 2),a
+      0000D8 E5*07            [12]  287 	mov	a,(_f_sloc1_1_0 + 3)
+      0000DA 95*0B            [12]  288 	subb	a,(_f_sloc2_1_0 + 3)
+      0000DC F5*0F            [12]  289 	mov	(_f_sloc3_1_0 + 3),a
+      0000DE A8*0C            [24]  290 	mov	r0,_f_sloc3_1_0
+      0000E0 E5*0D            [12]  291 	mov	a,(_f_sloc3_1_0 + 1)
+      0000E2 C4               [12]  292 	swap	a
+      0000E3 23               [12]  293 	rl	a
+      0000E4 C8               [12]  294 	xch	a,r0
+      0000E5 C4               [12]  295 	swap	a
+      0000E6 23               [12]  296 	rl	a
+      0000E7 54 1F            [12]  297 	anl	a,#0x1f
+      0000E9 68               [12]  298 	xrl	a,r0
+      0000EA C8               [12]  299 	xch	a,r0
+      0000EB 54 1F            [12]  300 	anl	a,#0x1f
+      0000ED C8               [12]  301 	xch	a,r0
+      0000EE 68               [12]  302 	xrl	a,r0
+      0000EF C8               [12]  303 	xch	a,r0
+      0000F0 F9               [12]  304 	mov	r1,a
+      0000F1 E5*0E            [12]  305 	mov	a,(_f_sloc3_1_0 + 2)
+      0000F3 C4               [12]  306 	swap	a
+      0000F4 23               [12]  307 	rl	a
+      0000F5 54 E0            [12]  308 	anl	a,#0xe0
+      0000F7 49               [12]  309 	orl	a,r1
+      0000F8 F9               [12]  310 	mov	r1,a
+      0000F9 AA*0E            [24]  311 	mov	r2,(_f_sloc3_1_0 + 2)
+      0000FB E5*0F            [12]  312 	mov	a,(_f_sloc3_1_0 + 3)
+      0000FD C4               [12]  313 	swap	a
+      0000FE 23               [12]  314 	rl	a
+      0000FF CA               [12]  315 	xch	a,r2
+      000100 C4               [12]  316 	swap	a
+      000101 23               [12]  317 	rl	a
+      000102 54 1F            [12]  318 	anl	a,#0x1f
+      000104 6A               [12]  319 	xrl	a,r2
+      000105 CA               [12]  320 	xch	a,r2
+      000106 54 1F            [12]  321 	anl	a,#0x1f
+      000108 CA               [12]  322 	xch	a,r2
+      000109 6A               [12]  323 	xrl	a,r2
+      00010A CA               [12]  324 	xch	a,r2
+      00010B 30 E4 02         [24]  325 	jnb	acc.4,00103$
+      00010E 44 E0            [12]  326 	orl	a,#0xe0
+      000110                        327 00103$:
+      000110 FB               [12]  328 	mov	r3,a
+      000111 EC               [12]  329 	mov	a,r4
+      000112 28               [12]  330 	add	a,r0
+      000113 F5*10            [12]  331 	mov	_f_sloc4_1_0,a
+      000115 ED               [12]  332 	mov	a,r5
+      000116 39               [12]  333 	addc	a,r1
+      000117 F5*11            [12]  334 	mov	(_f_sloc4_1_0 + 1),a
+      000119 EE               [12]  335 	mov	a,r6
+      00011A 3A               [12]  336 	addc	a,r2
+      00011B F5*12            [12]  337 	mov	(_f_sloc4_1_0 + 2),a
+      00011D EF               [12]  338 	mov	a,r7
+      00011E 3B               [12]  339 	addc	a,r3
+      00011F F5*13            [12]  340 	mov	(_f_sloc4_1_0 + 3),a
+      000121 E5*10            [12]  341 	mov	a,_f_sloc4_1_0
+      000123 C3               [12]  342 	clr	c
+      000124 95*00            [12]  343 	subb	a,_f_sloc0_1_0
+      000126 F5*00            [12]  344 	mov	_f_sloc0_1_0,a
+      000128 E5*11            [12]  345 	mov	a,(_f_sloc4_1_0 + 1)
+      00012A 95*01            [12]  346 	subb	a,(_f_sloc0_1_0 + 1)
+      00012C F5*01            [12]  347 	mov	(_f_sloc0_1_0 + 1),a
+      00012E E5*12            [12]  348 	mov	a,(_f_sloc4_1_0 + 2)
+      000130 95*02            [12]  349 	subb	a,(_f_sloc0_1_0 + 2)
+      000132 F5*02            [12]  350 	mov	(_f_sloc0_1_0 + 2),a
+      000134 E5*13            [12]  351 	mov	a,(_f_sloc4_1_0 + 3)
+      000136 95*03            [12]  352 	subb	a,(_f_sloc0_1_0 + 3)
+      000138 F5*03            [12]  353 	mov	(_f_sloc0_1_0 + 3),a
+      00013A E5*04            [12]  354 	mov	a,_f_sloc1_1_0
+      00013C 25*00            [12]  355 	add	a,_f_sloc0_1_0
+      00013E F5*04            [12]  356 	mov	_f_sloc1_1_0,a
+      000140 E5*05            [12]  357 	mov	a,(_f_sloc1_1_0 + 1)
+      000142 35*01            [12]  358 	addc	a,(_f_sloc0_1_0 + 1)
+      000144 F5*05            [12]  359 	mov	(_f_sloc1_1_0 + 1),a
+      000146 E5*06            [12]  360 	mov	a,(_f_sloc1_1_0 + 2)
+      000148 35*02            [12]  361 	addc	a,(_f_sloc0_1_0 + 2)
+      00014A F5*06            [12]  362 	mov	(_f_sloc1_1_0 + 2),a
+      00014C E5*07            [12]  363 	mov	a,(_f_sloc1_1_0 + 3)
+      00014E 35*03            [12]  364 	addc	a,(_f_sloc0_1_0 + 3)
+      000150 F5*07            [12]  365 	mov	(_f_sloc1_1_0 + 3),a
+      000152 E5*04            [12]  366 	mov	a,_f_sloc1_1_0
+      000154 C3               [12]  367 	clr	c
+      000155 95*08            [12]  368 	subb	a,_f_sloc2_1_0
+      000157 F5*08            [12]  369 	mov	_f_sloc2_1_0,a
+      000159 E5*05            [12]  370 	mov	a,(_f_sloc1_1_0 + 1)
+      00015B 95*09            [12]  371 	subb	a,(_f_sloc2_1_0 + 1)
+      00015D F5*09            [12]  372 	mov	(_f_sloc2_1_0 + 1),a
+      00015F E5*06            [12]  373 	mov	a,(_f_sloc1_1_0 + 2)
+      000161 95*0A            [12]  374 	subb	a,(_f_sloc2_1_0 + 2)
+      000163 F5*0A            [12]  375 	mov	(_f_sloc2_1_0 + 2),a
+      000165 E5*07            [12]  376 	mov	a,(_f_sloc1_1_0 + 3)
+      000167 95*0B            [12]  377 	subb	a,(_f_sloc2_1_0 + 3)
+      000169 F5*0B            [12]  378 	mov	(_f_sloc2_1_0 + 3),a
+      00016B AD*08            [24]  379 	mov	r5,_f_sloc2_1_0
+      00016D AF*09            [24]  380 	mov	r7,(_f_sloc2_1_0 + 1)
+      00016F AC*0C            [24]  381 	mov	r4,_f_sloc3_1_0
+      000171 AE*0D            [24]  382 	mov	r6,(_f_sloc3_1_0 + 1)
+      000173 EC               [12]  383 	mov	a,r4
+      000174 2D               [12]  384 	add	a,r5
+      000175 FD               [12]  385 	mov	r5,a
+      000176 EE               [12]  386 	mov	a,r6
+      000177 3F               [12]  387 	addc	a,r7
+      000178 FF               [12]  388 	mov	r7,a
+      000179 ED               [12]  389 	mov	a,r5
+      00017A C3               [12]  390 	clr	c
+      00017B 98               [12]  391 	subb	a,r0
+      00017C FD               [12]  392 	mov	r5,a
+      00017D EF               [12]  393 	mov	a,r7
+      00017E 99               [12]  394 	subb	a,r1
+      00017F FF               [12]  395 	mov	r7,a
+                                    396 ;	t8.c:4: return (int16_t)(m+h+i+j+k);
+      000180 AC*10            [24]  397 	mov	r4,_f_sloc4_1_0
+      000182 AE*11            [24]  398 	mov	r6,(_f_sloc4_1_0 + 1)
+      000184 EC               [12]  399 	mov	a,r4
+      000185 2D               [12]  400 	add	a,r5
+      000186 FD               [12]  401 	mov	r5,a
+      000187 EE               [12]  402 	mov	a,r6
+      000188 3F               [12]  403 	addc	a,r7
+      000189 FF               [12]  404 	mov	r7,a
+      00018A AC*00            [24]  405 	mov	r4,_f_sloc0_1_0
+      00018C AE*01            [24]  406 	mov	r6,(_f_sloc0_1_0 + 1)
+      00018E EC               [12]  407 	mov	a,r4
+      00018F 2D               [12]  408 	add	a,r5
+      000190 FD               [12]  409 	mov	r5,a
+      000191 EE               [12]  410 	mov	a,r6
+      000192 3F               [12]  411 	addc	a,r7
+      000193 FF               [12]  412 	mov	r7,a
+      000194 AC*04            [24]  413 	mov	r4,_f_sloc1_1_0
+      000196 AE*05            [24]  414 	mov	r6,(_f_sloc1_1_0 + 1)
+      000198 EC               [12]  415 	mov	a,r4
+      000199 2D               [12]  416 	add	a,r5
+      00019A FD               [12]  417 	mov	r5,a
+      00019B EE               [12]  418 	mov	a,r6
+      00019C 3F               [12]  419 	addc	a,r7
+      00019D FF               [12]  420 	mov	r7,a
+      00019E AC*08            [24]  421 	mov	r4,_f_sloc2_1_0
+      0001A0 AE*09            [24]  422 	mov	r6,(_f_sloc2_1_0 + 1)
+      0001A2 EC               [12]  423 	mov	a,r4
+      0001A3 2D               [12]  424 	add	a,r5
+      0001A4 FD               [12]  425 	mov	r5,a
+      0001A5 EE               [12]  426 	mov	a,r6
+      0001A6 3F               [12]  427 	addc	a,r7
+                                    428 ;	t8.c:5: }
+      0001A7 8D 82            [24]  429 	mov	dpl,r5
+      0001A9 F5 83            [12]  430 	mov	dph,a
+      0001AB 22               [24]  431 	ret
+                                    432 	.area CSEG    (CODE)
+                                    433 	.area CONST   (CODE)
+                                    434 	.area XINIT   (CODE)
+                                    435 	.area CABS    (ABS,CODE)
