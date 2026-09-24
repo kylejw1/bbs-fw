@@ -420,42 +420,54 @@ void apply_pretension(uint8_t* target_current)
 
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent)
 {
-	if ((assist_level_data.level.flags & ASSIST_FLAG_PAS) && !(assist_level_data.level.flags & ASSIST_FLAG_PAS_TORQUE))
+	if (!(assist_level_data.level.flags & ASSIST_FLAG_PAS)) {
+		// Not in a PAS level
+		return;
+	}
+	if (assist_level_data.level.flags & ASSIST_FLAG_PAS_TORQUE) {
+		// In PAS mode with torque sensor
+		return;
+	}
+	if (!pas_is_pedaling_forwards()) {
+		// Not pedalling forwards, nothing to do
+		return;
+	}
+	if (pas_get_pulse_counter() <= g_config.pas_start_delay_pulses) {
+		// Havent read enough PAS pulses to start yet
+		return;
+	}
+
+	if (assist_level_data.level.flags & ASSIST_FLAG_PAS_VARIABLE)
 	{
-		if (pas_is_pedaling_forwards() && pas_get_pulse_counter() > g_config.pas_start_delay_pulses)
+		uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.target_current_percent);
+		if (current > *target_current)
 		{
-			if (assist_level_data.level.flags & ASSIST_FLAG_PAS_VARIABLE)
-			{
-				uint8_t current = (uint8_t)MAP16(throttle_percent, 0, 100, 0, assist_level_data.level.target_current_percent);
-				if (current > *target_current)
-				{
-					*target_current = current;
-				}
-			}
-			else
-			{
-				if (assist_level_data.level.target_current_percent > *target_current)
-				{
-					*target_current = assist_level_data.level.target_current_percent;
-				}
+			*target_current = current;
+		}
+	}
+	else
+	{
+		if (assist_level_data.level.target_current_percent > *target_current)
+		{
+			// Target current is less than the PAS level specifies
+			*target_current = assist_level_data.level.target_current_percent;
+		}
 
-				// apply "keep current" ramp
-				if (g_config.pas_keep_current_percent < 100)
-				{
-					if (*target_current > assist_level_data.keep_current_target_percent &&
-						pas_get_cadence_rpm_x10() > assist_level_data.keep_current_ramp_start_rpm_x10)
-					{
-						uint32_t cadence = MIN(pas_get_cadence_rpm_x10(), assist_level_data.keep_current_ramp_end_rpm_x10);
+		// apply "keep current" ramp
+		if (g_config.pas_keep_current_percent < 100)
+		{
+			if (*target_current > assist_level_data.keep_current_target_percent &&
+				pas_get_cadence_rpm_x10() > assist_level_data.keep_current_ramp_start_rpm_x10)
+			{
+				uint32_t cadence = MIN(pas_get_cadence_rpm_x10(), assist_level_data.keep_current_ramp_end_rpm_x10);
 
-						// ramp down current towards keep_current_target_percent with rpm above keep_current_ramp_start_rpm_x10
-						*target_current = MAP32(
-							cadence,	// in
-							assist_level_data.keep_current_ramp_start_rpm_x10,		// in_min
-							assist_level_data.keep_current_ramp_end_rpm_x10,		// in_max
-							*target_current,										// out_min
-							assist_level_data.keep_current_target_percent);			// out_max
-					}
-				}
+				// ramp down current towards keep_current_target_percent with rpm above keep_current_ramp_start_rpm_x10
+				*target_current = MAP32(
+					cadence,	// in
+					assist_level_data.keep_current_ramp_start_rpm_x10,		// in_min
+					assist_level_data.keep_current_ramp_end_rpm_x10,		// in_max
+					*target_current,										// out_min
+					assist_level_data.keep_current_target_percent);			// out_max
 			}
 		}
 	}
@@ -1024,26 +1036,23 @@ uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph)
 
 uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10)
 {
-	// Temporarily convert it to x160 since I'm doing some dividing and adding, keep some precision 
-	// until its converted to pct
-	static const uint16_t max_cadence_rpm_x160 = MAX_CADENCE_RPM_X10 << 4;
-	static uint16_t filtered_PAS_target_rpm_x160 = 0;
-	uint16_t current_cadence_rpm_x160 = current_cadence_rpm_x10 << 4;
-	uint8_t target_speed_pct;
+	static uint16_t filtered_PAS_target_rpm_x10 = 0;
+	uint16_t target_rpm_x10 = current_cadence_rpm_x10 + (assist_level_data.level.target_rpm_offset * 10);
+	uint16_t target_speed_pct;
 
-	if (filtered_PAS_target_rpm_x160 > current_cadence_rpm_x160) {
+	if (filtered_PAS_target_rpm_x10 > target_rpm_x10) {
 		// slowing down
-		filtered_PAS_target_rpm_x160 = filtered_PAS_target_rpm_x160 - ((filtered_PAS_target_rpm_x160-current_cadence_rpm_x160)/8);
+		filtered_PAS_target_rpm_x10 = filtered_PAS_target_rpm_x10 - ((filtered_PAS_target_rpm_x10-target_rpm_x10)/10);
 	} else {
 		// speeding up or same speed
-		filtered_PAS_target_rpm_x160 = filtered_PAS_target_rpm_x160 + ((current_cadence_rpm_x160 - filtered_PAS_target_rpm_x160)/8);
+		filtered_PAS_target_rpm_x10 = filtered_PAS_target_rpm_x10 + ((target_rpm_x10 - filtered_PAS_target_rpm_x10)/10);
 	}
 
-	target_speed_pct = MAP32(filtered_PAS_target_rpm_x160, 0, max_cadence_rpm_x160, 0, 100) + assist_level_data.level.target_rpm_offset;
+	target_speed_pct = MAP32(filtered_PAS_target_rpm_x10, 0, MAX_CADENCE_RPM_X10, 0, 100);
 	
-	target_speed_pct = (uint8_t)CLAMP(target_speed_pct, 10, 100);
+	target_speed_pct = CLAMP(target_speed_pct, 10, 100);
 
-	return target_speed_pct;
+	return (uint8_t)target_speed_pct;
 }
 
 uint8_t compute_PAS_target_speed_pct_V2()

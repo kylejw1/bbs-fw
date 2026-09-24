@@ -37,8 +37,9 @@
 #if defined(BBS02)
 #define MAX_CADENCE_RPM_X10					1500
 #elif defined(BBSHD)
- // Measured on BBSHD at 48V
-#define MAX_CADENCE_RPM_X10					1200 // 1680
+ // Measured 168 on BBSHD at 48V (original author)
+ // Measured 133 on BBSHD at 36V (me, kyle)
+#define MAX_CADENCE_RPM_X10					1330 
 #else
 #define MAX_CADENCE_RPM_X10					1200
 #endif
