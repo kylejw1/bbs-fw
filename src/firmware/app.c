@@ -87,7 +87,7 @@ void reload_assist_params();
 
 uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph);
 
-uint8_t compute_PAS_target_speed_pct();
+uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10);
 uint8_t compute_PAS_target_speed_pct_V2();
 
 void app_init()
@@ -169,9 +169,9 @@ void app_process()
 		// Compute and save throttle current request (taken from apply_throttle since it returns a boolean)
 		uint8_t throttle_current = (uint8_t)MAP16(throttle_percent, 0, 100, g_config.throttle_start_percent, assist_level_data.level.max_throttle_current_percent);
 
-		uint8_t cur_pas_cadence_rpm_x10 = pas_get_cadence_rpm_x10();
+		uint16_t cur_pas_cadence_rpm_x10 = pas_get_cadence_rpm_x10();
 
-		uint8_t pas_target_speed_pct = compute_PAS_target_speed_pct_V2(); // Always keep PAS target speed updated based on cadence.
+		uint8_t pas_target_speed_pct = compute_PAS_target_speed_pct(cur_pas_cadence_rpm_x10); // Always keep PAS target speed updated based on cadence.
 
 		// override target cadence if configured in assist level
 		if (throttle_override &&
@@ -188,7 +188,7 @@ void app_process()
 			target_current = throttle_current;
 		}
 		// Pedalling forwards with no throttle, use PAS current and cadence / speed
-		else if (pas_is_pedaling_forwards()) 
+		else if (pas_engaged) 
 		{
 			target_cadence = pas_target_speed_pct;
 		}
@@ -1022,20 +1022,28 @@ uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph)
 	return (uint16_t)(25000.f / (3 * 3.14159f * radius_mm) * speed_kph);
 }
 
-uint8_t compute_PAS_target_speed_pct()
+uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10)
 {
-	static uint32_t next_fetch_current_cadence_rpm_x10 = 0;
-	static uint8_t filtered_PAS_target_speed_pct = 0;
-	uint8_t current_PAS_target_speed_pct = 0;
+	// Temporarily convert it to x160 since I'm doing some dividing and adding, keep some precision 
+	// until its converted to pct
+	static const uint16_t max_cadence_rpm_x160 = MAX_CADENCE_RPM_X10 << 4;
+	static uint16_t filtered_PAS_target_rpm_x160 = 0;
+	uint16_t current_cadence_rpm_x160 = current_cadence_rpm_x10 << 4;
+	uint8_t target_speed_pct;
 
-	if (system_ms() > next_fetch_current_cadence_rpm_x10)
-	{
-		next_fetch_current_cadence_rpm_x10 = system_ms() + 100;
-		current_PAS_target_speed_pct = (uint8_t)MAP32(pas_get_cadence_rpm_x10(), 0, MAX_CADENCE_RPM_X10, 0, 100);
-		filtered_PAS_target_speed_pct = EXPONENTIAL_FILTER(filtered_PAS_target_speed_pct, current_PAS_target_speed_pct, 4);
+	if (filtered_PAS_target_rpm_x160 > current_cadence_rpm_x160) {
+		// slowing down
+		filtered_PAS_target_rpm_x160 = filtered_PAS_target_rpm_x160 - ((filtered_PAS_target_rpm_x160-current_cadence_rpm_x160)/8);
+	} else {
+		// speeding up or same speed
+		filtered_PAS_target_rpm_x160 = filtered_PAS_target_rpm_x160 + ((current_cadence_rpm_x160 - filtered_PAS_target_rpm_x160)/8);
 	}
 
-	return filtered_PAS_target_speed_pct;
+	target_speed_pct = (uint8_t)MAP32(filtered_PAS_target_rpm_x160, 0, max_cadence_rpm_x160, 0, 100);
+	
+	target_speed_pct = CLAMP(target_speed_pct, 10, 100);
+
+	return target_speed_pct;
 }
 
 uint8_t compute_PAS_target_speed_pct_V2()
