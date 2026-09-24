@@ -54,7 +54,9 @@
 #define LIGHTS_MODE_ALWAYS_ON			2
 #define LIGHTS_MODE_BRAKE_LIGHT			3
 
-#define CONFIG_VERSION					5
+// Version 6 is version 5 plus a one byte per-assist-level `target_rpm_offset`,
+// which raises the variable PAS speed target above the measured pedal cadence.
+#define CONFIG_VERSION					6
 #define PSTATE_VERSION					1
 
 
@@ -68,6 +70,11 @@ typedef struct
 
 	// 10 => 1.0: 100w human power gives and additional 100w motor power
 	uint8_t torque_amplification_factor_x10;
+
+	// Added in config version 6. Offset in rpm added to the measured pedal
+	// cadence when deriving the variable PAS speed target, so the motor is
+	// allowed to run ahead of the rider's legs. 0 disables the offset.
+	uint8_t target_rpm_offset;
 }  assist_level_t;
 
 // SDCC uses little endian for MCS51 and big endian for STM8...

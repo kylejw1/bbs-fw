@@ -1039,9 +1039,9 @@ uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10)
 		filtered_PAS_target_rpm_x160 = filtered_PAS_target_rpm_x160 + ((current_cadence_rpm_x160 - filtered_PAS_target_rpm_x160)/8);
 	}
 
-	target_speed_pct = (uint8_t)MAP32(filtered_PAS_target_rpm_x160, 0, max_cadence_rpm_x160, 0, 100);
+	target_speed_pct = MAP32(filtered_PAS_target_rpm_x160, 0, max_cadence_rpm_x160, 0, 100) + assist_level_data.level.target_rpm_offset;
 	
-	target_speed_pct = CLAMP(target_speed_pct, 10, 100);
+	target_speed_pct = (uint8_t)CLAMP(target_speed_pct, 10, 100);
 
 	return target_speed_pct;
 }
