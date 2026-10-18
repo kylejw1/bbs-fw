@@ -48,6 +48,7 @@
 #define OPCODE_WRITE_CONFIG						0xf1
 #define OPCODE_WRITE_RESET_CONFIG				0xf2
 #define OPCODE_WRITE_ADC_VOLTAGE_CALIBRATION	0xf3
+#define OPCODE_WRITE_INCLINATION					0xf4
 
 
 // Bafang display communication
@@ -102,6 +103,7 @@ static int16_t process_write_evtlog_enable();
 static int16_t process_write_config();
 static int16_t process_write_reset_config();
 static int16_t process_write_adc_voltage_calibration();
+static int16_t process_write_inclination();
 
 
 static int16_t process_bafang_display_read_status();
@@ -272,6 +274,8 @@ static int16_t try_process_write_request()
 		return process_write_reset_config();
 	case OPCODE_WRITE_ADC_VOLTAGE_CALIBRATION:
 		return process_write_adc_voltage_calibration();
+	case OPCODE_WRITE_INCLINATION:
+		return process_write_inclination();
 	}
 
 	return DISCARD;
@@ -546,6 +550,39 @@ static int16_t process_write_adc_voltage_calibration()
 	}
 
 	return 5;
+}
+
+// Inclination (pitch and roll) broadcast by the middleman, which carries an IMU
+// the controller does not have. Signed degrees x10, big endian. This is not part
+// of the config tool protocol; the frame is accepted here so that it reaches app
+// state instead of being discarded as an unknown request.
+static int16_t process_write_inclination()
+{
+	if (msg_len < 7)
+	{
+		return KEEP;
+	}
+
+	if (compute_checksum(msgbuf, 6) == msgbuf[6])
+	{
+		int16_t pitch_x10 = (int16_t)(((uint16_t)msgbuf[2] << 8) | msgbuf[3]);
+		int16_t roll_x10 = (int16_t)(((uint16_t)msgbuf[4] << 8) | msgbuf[5]);
+
+		app_set_inclination(pitch_x10, roll_x10);
+
+		uint8_t checksum = 0;
+		write_uart_and_increment_checksum(REQUEST_TYPE_WRITE, &checksum);
+		write_uart_and_increment_checksum(OPCODE_WRITE_INCLINATION, &checksum);
+		write_uart_and_increment_checksum(1, &checksum);
+		uart_write(checksum);
+	}
+	else
+	{
+		eventlog_write(EVT_ERROR_EXTCOM_CHEKSUM);
+		return DISCARD;
+	}
+
+	return 7;
 }
 
 

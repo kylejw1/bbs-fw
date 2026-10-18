@@ -83,6 +83,20 @@ static bool pas_prev1;
 static bool pas_prev2;
 static uint16_t pas_stop_delay_periods;
 
+// Sliding window of the last PAS_CADENCE_WINDOW_PULSES inter-pulse periods.
+// Cadence is reported as the mean period over this window, i.e. over half a
+// crank revolution, which cancels the 2nd-harmonic pedal ripple. See
+// PAS_CADENCE_WINDOW_PULSES in fwconfig.h.
+//
+// pas_cadence_window/pas_cadence_index are only touched with the sensor
+// interrupt masked, and an entry is always written before it is first read
+// (nothing is evicted until the window has been filled once), so the array
+// needs no initialisation.
+static uint16_t pas_cadence_window[PAS_CADENCE_WINDOW_PULSES];
+static uint8_t pas_cadence_index;
+static volatile uint32_t pas_cadence_sum;
+static volatile uint8_t pas_cadence_count;
+
 static volatile uint16_t speed_ticks_period_length; // pulse length counted in interrupt frequency (100us)
 static uint16_t speed_period_counter;
 static bool speed_prev_state;
@@ -154,6 +168,9 @@ void sensors_init()
 	pas_pulse_counter = 0;
 	pas_direction_backward = false;
 	pas_period_length = 0;
+	pas_cadence_index = 0;
+	pas_cadence_sum = 0;
+	pas_cadence_count = 0;
 	pas_stop_delay_periods = 1500;
 	speed_period_counter = 0;
 	speed_ticks_period_length = 0;
@@ -204,19 +221,28 @@ void pas_set_stop_delay(uint16_t delay_ms)
 
 uint16_t pas_get_cadence_rpm_x10()
 {
-	uint16_t tmp;
+	uint32_t sum;
+	uint8_t count;
+	uint16_t period;
 	ET0 = 0; // disable timer0 interrupts
-	tmp = pas_period_length;
+	period = pas_period_length;
+	sum = pas_cadence_sum;
+	count = pas_cadence_count;
 	ET0 = 1;
 
-	if (tmp > 0)
+	if (period == 0 || count == 0 || sum == 0)
 	{
-		return (uint16_t)((6000000ul / PAS_SENSOR_NUM_SIGNALS) / tmp);
-	}
-	else
-	{
+		// No measurable pulse since the pedals last stopped. pas_period_length is
+		// the authority on that, so a window left over from before the stop is
+		// ignored rather than reported as a stale cadence.
 		return 0;
 	}
+
+	// Mean inter-pulse period over the last PAS_CADENCE_WINDOW_PULSES pulses, in
+	// 100us ticks. Inverting the mean period gives the true mean cadence;
+	// averaging the per-pulse rates instead would read high (arithmetic vs
+	// harmonic mean).
+	return (uint16_t)(((6000000ul / PAS_SENSOR_NUM_SIGNALS) * count) / sum);
 }
 
 uint16_t pas_get_pulse_counter()
@@ -468,6 +494,25 @@ void sensors_timer0_isr() // runs every 100us, see timers.c
 				if (pas_period_counter <= pas_stop_delay_periods)
 				{
 					pas_period_length = pas_period_counter; // save in order to be able to calculate rpm when needed
+
+					// Slide this period into the cadence window. Nothing is evicted
+					// until the window has been filled once.
+					if (pas_cadence_count < PAS_CADENCE_WINDOW_PULSES)
+					{
+						++pas_cadence_count;
+					}
+					else
+					{
+						pas_cadence_sum -= pas_cadence_window[pas_cadence_index];
+					}
+
+					pas_cadence_window[pas_cadence_index] = pas_period_counter;
+					pas_cadence_sum += pas_period_counter;
+
+					if (++pas_cadence_index >= PAS_CADENCE_WINDOW_PULSES)
+					{
+						pas_cadence_index = 0;
+					}
 				}
 				else
 				{
@@ -490,6 +535,13 @@ void sensors_timer0_isr() // runs every 100us, see timers.c
 				pas_period_length = 0;
 				pas_pulse_counter = 0;
 				pas_direction_backward = false;
+
+				// Drop the cadence window as well, otherwise the first half
+				// revolution after the rider resumes would average in pre-stop
+				// periods and under-report cadence.
+				pas_cadence_index = 0;
+				pas_cadence_sum = 0;
+				pas_cadence_count = 0;
 			}
 		}
 
