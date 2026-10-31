@@ -31,8 +31,6 @@
 #define SPEED_SENSOR_TIMEOUT_MS_X10		25000
 
 #ifdef PIN_HALL_U
-// Read the three motor hall signals as a single 3 bit state. The pin order is
-// arbitrary, every electrical revolution produces the same 6 state changes.
 #define HALL_READ_STATE()	((uint8_t)(	(GET_PIN_STATE(PIN_HALL_U) ? 0x01 : 0) | \
 										(GET_PIN_STATE(PIN_HALL_V) ? 0x02 : 0) | \
 										(GET_PIN_STATE(PIN_HALL_W) ? 0x04 : 0)))
@@ -166,8 +164,6 @@ void sensors_init()
 	SET_PIN_INPUT(PIN_SPEED_SENSOR);
 
 #ifdef PIN_HALL_U
-	// Hall signals are shared with the NEC motor controller, only ever read
-	// them as high impedance inputs.
 	SET_PIN_INPUT(PIN_HALL_U);
 	SET_PIN_INPUT(PIN_HALL_V);
 	SET_PIN_INPUT(PIN_HALL_W);

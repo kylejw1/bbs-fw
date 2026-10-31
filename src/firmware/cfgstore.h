@@ -54,9 +54,7 @@
 #define LIGHTS_MODE_ALWAYS_ON			2
 #define LIGHTS_MODE_BRAKE_LIGHT			3
 
-// Version 6 is version 5 plus a one byte per-assist-level `target_rpm_offset`,
-// which raises the variable PAS speed target above the measured pedal cadence.
-#define CONFIG_VERSION					6
+#define CONFIG_VERSION					7
 #define PSTATE_VERSION					1
 
 

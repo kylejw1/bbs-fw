@@ -50,15 +50,6 @@
 	#define PAS_PULSES_REVOLUTION				20
 #endif
 
-// ---------------------------------------------------------------------------
-// Motor rotor speed measurement from the motor hall sensors.
-//
-// The three hall signals are routed to both the NEC motor controller and the
-// STC through a shared 3k series resistor (see drawings/pcb/bbshd.sch, motor
-// connector JP4), so the STC can measure motor rotor speed for free. Only
-// traced for BBSHD, the code is compiled out where PIN_HALL_U is undefined.
-// ---------------------------------------------------------------------------
-
 // Hall state transitions per electrical revolution. Fixed by the fact that
 // three halls produce 6 distinct states per electrical cycle. Do not change.
 #define HALL_EDGES_PER_ELEC_REV				6
