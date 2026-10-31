@@ -64,12 +64,6 @@ void app_set_lights(bool on);
 void app_set_operation_mode(uint8_t mode);
 void app_set_wheel_max_speed_rpm(uint16_t value);
 
-// Inclination of the bike in signed degrees x10, as broadcast by the middleman
-// over the config tool protocol (positive pitch = nose up, positive roll =
-// leaning right). Nothing consumes it yet.
-void app_set_inclination(int16_t pitch_x10, int16_t roll_x10);
-bool app_get_inclination(int16_t* pitch_x10, int16_t* roll_x10);
-
 uint8_t app_get_assist_level();
 uint8_t app_get_lights();
 uint8_t app_get_status_code();

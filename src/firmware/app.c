@@ -64,15 +64,6 @@ static bool lights_state = false;
 #define DEBUG_TELEMETRY_INTERVAL_MS 500
 static uint32_t last_debug_telemetry_ms;
 
-// Inclination broadcast by the middleman. Only as good as the last frame, so age
-// it out rather than acting on a value from a middleman that has stopped talking
-// (IMU unplugged, web UI keeping the link busy, ...).
-#define INCLINATION_TIMEOUT_MS 2000
-static int16_t inclination_pitch_x10;
-static int16_t inclination_roll_x10;
-static uint32_t inclination_recv_ms;
-static bool inclination_received = false;
-
 void apply_pas_cadence(uint8_t* target_current, uint8_t throttle_percent);
 #if HAS_TORQUE_SENSOR
 void apply_pas_torque(uint8_t* target_current);
@@ -338,14 +329,6 @@ void app_set_wheel_max_speed_rpm(uint16_t value)
 	}
 }
 
-void app_set_inclination(int16_t pitch_x10, int16_t roll_x10)
-{
-	inclination_pitch_x10 = pitch_x10;
-	inclination_roll_x10 = roll_x10;
-	inclination_recv_ms = system_ms();
-	inclination_received = true;
-}
-
 uint8_t app_get_assist_level()
 {
 	return assist_level;
@@ -422,19 +405,6 @@ uint8_t app_get_temperature()
 	}
 
 	return (uint8_t)temp_max;
-}
-
-bool app_get_inclination(int16_t* pitch_x10, int16_t* roll_x10)
-{
-	if (!inclination_received || system_ms() - inclination_recv_ms > INCLINATION_TIMEOUT_MS)
-	{
-		return false;
-	}
-
-	*pitch_x10 = inclination_pitch_x10;
-	*roll_x10 = inclination_roll_x10;
-
-	return true;
 }
 
 void apply_pretension(uint8_t* target_current)

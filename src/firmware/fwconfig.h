@@ -50,21 +50,6 @@
 	#define PAS_PULSES_REVOLUTION				20
 #endif
 
-// Number of PAS pulses averaged into one cadence reading.
-//
-// Crank speed is not constant within a stroke: the pedals slow at top and
-// bottom dead centre, so the instantaneous rate carries a strong 2nd harmonic
-// of the crank revolution. That harmonic has a period of exactly half a
-// revolution, so summing the inter-pulse *periods* over half a revolution
-// cancels it exactly, at any phase. Averaging over a fixed time instead cannot
-// do this, because the disturbance is periodic in crank angle, not in time.
-//
-// Averaging the period rather than the per-pulse rate also matters: the mean of
-// instantaneous rates is the arithmetic mean of crank velocity, which sits
-// above the true mean cadence (the harmonic mean of the same samples), and the
-// error grows with how uneven the stroke is.
-#define PAS_CADENCE_WINDOW_PULSES		(PAS_PULSES_REVOLUTION / 2)
-
 // ---------------------------------------------------------------------------
 // Motor rotor speed measurement from the motor hall sensors.
 //
