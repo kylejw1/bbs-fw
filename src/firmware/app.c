@@ -87,7 +87,7 @@ void reload_assist_params();
 
 uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph);
 
-uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10);
+uint8_t compute_PAS_target_speed_pct();
 uint8_t compute_PAS_target_speed_pct_V2();
 
 void app_init()
@@ -171,7 +171,7 @@ void app_process()
 
 		uint16_t cur_pas_cadence_rpm_x10 = pas_get_cadence_rpm_x10();
 
-		uint8_t pas_target_speed_pct = compute_PAS_target_speed_pct(cur_pas_cadence_rpm_x10); // Always keep PAS target speed updated based on cadence.
+		uint8_t pas_target_speed_pct = compute_PAS_target_speed_pct(); // Always keep PAS target speed updated based on cadence.
 
 		// override target cadence if configured in assist level
 		if (throttle_override &&
@@ -1034,25 +1034,20 @@ uint16_t convert_wheel_speed_kph_to_rpm(uint8_t speed_kph)
 	return (uint16_t)(25000.f / (3 * 3.14159f * radius_mm) * speed_kph);
 }
 
-uint8_t compute_PAS_target_speed_pct(uint16_t current_cadence_rpm_x10)
+uint8_t compute_PAS_target_speed_pct()
 {
-	static uint16_t filtered_PAS_target_rpm_x10 = 0;
-	uint16_t target_rpm_x10 = current_cadence_rpm_x10 + (assist_level_data.level.target_rpm_offset * 10);
-	uint16_t target_speed_pct;
+	static uint32_t next_fetch_current_cadence_rpm_x10 = 0;
+	static uint8_t filtered_PAS_target_speed_pct = 0;
+	uint8_t current_PAS_target_speed_pct = 0;
 
-	if (filtered_PAS_target_rpm_x10 > target_rpm_x10) {
-		// slowing down
-		filtered_PAS_target_rpm_x10 = filtered_PAS_target_rpm_x10 - ((filtered_PAS_target_rpm_x10-target_rpm_x10)/10);
-	} else {
-		// speeding up or same speed
-		filtered_PAS_target_rpm_x10 = filtered_PAS_target_rpm_x10 + ((target_rpm_x10 - filtered_PAS_target_rpm_x10)/10);
+	if (system_ms() > next_fetch_current_cadence_rpm_x10)
+	{
+		next_fetch_current_cadence_rpm_x10 = system_ms() + 100;
+		current_PAS_target_speed_pct = (uint8_t)MAP32(pas_get_cadence_rpm_x10(), 0, MAX_CADENCE_RPM_X10, 0, 100);
+		filtered_PAS_target_speed_pct = EXPONENTIAL_FILTER(filtered_PAS_target_speed_pct, current_PAS_target_speed_pct, 4);
 	}
 
-	target_speed_pct = MAP32(filtered_PAS_target_rpm_x10, 0, MAX_CADENCE_RPM_X10, 0, 100);
-	
-	target_speed_pct = CLAMP(target_speed_pct, 10, 100);
-
-	return (uint8_t)target_speed_pct;
+	return filtered_PAS_target_speed_pct;
 }
 
 uint8_t compute_PAS_target_speed_pct_V2()
